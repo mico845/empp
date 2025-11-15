@@ -22,4 +22,7 @@ using C13 = platform::gpio::Gpio<PortC, 13>;
 using C14 = platform::gpio::Gpio<PortC, 14>;
 using C15 = platform::gpio::Gpio<PortC, 15>;
 
+// Port E Pins
+using E6 = platform::gpio::Gpio<PortE, 6>;
+
 } // namespace empp::stm32h7::gpio

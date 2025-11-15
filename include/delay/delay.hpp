@@ -15,7 +15,7 @@ inline void init()
 #if EMPP_DELAY_USE_SYSTICK
     platform::delay::systick::init();
 #elif EMPP_DELAY_USE_DWT
-
+    platform::delay::dwt::init();
 #endif
 }
 
@@ -24,6 +24,7 @@ inline void init(const uint16_t sysclk_mhz)
 #if EMPP_DELAY_USE_SYSTICK
     platform::delay::systick::init(sysclk_mhz);
 #elif EMPP_DELAY_USE_DWT
+    platform::delay::dwt::init(sysclk_mhz);
 #endif
 }
 
@@ -32,6 +33,7 @@ inline void ms(uint16_t nMs)
 #if EMPP_DELAY_USE_SYSTICK
     platform::delay::systick::ms(nMs);
 #elif EMPP_DELAY_USE_DWT
+    platform::delay::dwt::ms(nMs);
 #endif
 }
 inline void us(uint32_t nUs)
@@ -39,6 +41,7 @@ inline void us(uint32_t nUs)
 #if EMPP_DELAY_USE_SYSTICK
     platform::delay::systick::us(nUs);
 #elif EMPP_DELAY_USE_DWT
+    platform::delay::dwt::us(nUs);
 #endif
 }
 
