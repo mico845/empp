@@ -45,4 +45,13 @@ inline void us(uint32_t nUs)
 #endif
 }
 
+inline void s(uint16_t nS)
+{
+#if EMPP_DELAY_USE_SYSTICK
+    platform::delay::systick::s(nS);
+#elif EMPP_DELAY_USE_DWT
+    platform::delay::dwt::s(nS);
+#endif
+}
+
 } // namespace empp::stm32h7::delay

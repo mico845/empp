@@ -4,7 +4,7 @@
 
 namespace empp::platform::delay::dwt {
 
-inline volatile uint32_t ticks_per_us = 0;
+inline uint32_t ticks_per_us = 0;
 
 constexpr uint32_t COREDEBUG_DWT_ENABLE = CoreDebug_DEMCR_TRCENA_Msk;
 constexpr uint32_t DWT_ENABLE           = DWT_CTRL_CYCCNTENA_Msk;
@@ -17,15 +17,17 @@ inline void us(const uint32_t nUs)
     const uint32_t start = DWT->CYCCNT;
     const uint32_t ticks = nUs * ticks_per_us;
     while ((uint32_t)(DWT->CYCCNT - start) < ticks) {
+        __NOP();
     }
 }
 
-inline void xms(uint16_t nMs)
-{
-    while (nMs--)
-        us(1000); // 500Mhz的时候,delay_xms最大只能延时大约33.5ms，这里使用30
-}
+// 延时 n 毫秒（单次最大约 8589.93ms @500MHz）
+inline void ms(uint16_t nMs) { us(static_cast<uint32_t>(nMs * 1000ULL)); }
 
-inline void ms(const uint16_t nMs) { xms(nMs); }
+inline void s(uint16_t nS)
+{
+    while (nS--)
+        ms(1000);
+}
 
 } // namespace empp::platform::delay::dwt

@@ -4,7 +4,7 @@
 
 namespace empp::platform::delay::systick {
 
-inline volatile uint32_t ticks_per_us = 0;
+inline uint32_t ticks_per_us = 0;
 
 constexpr uint32_t SYSTICK_CLKSOURCE_CPU = SysTick_CTRL_CLKSOURCE_Msk;
 constexpr uint32_t SYSTICK_ENABLE        = SysTick_CTRL_ENABLE_Msk;
@@ -23,6 +23,7 @@ inline void us(const uint32_t nUs)
 
     // 等待计数完成
     while (!(SysTick->CTRL & SYSTICK_COUNTFLAG)) {
+        __NOP();
     }
 
     SysTick->CTRL &= ~SYSTICK_ENABLE; // 停止SysTick
@@ -41,6 +42,7 @@ inline void xms(const uint16_t nMs)
 
     // 等待计数完成
     while (!(SysTick->CTRL & SYSTICK_COUNTFLAG)) {
+        __NOP();
     }
 
     SysTick->CTRL &= ~SYSTICK_ENABLE; // 停止 SysTick
@@ -61,6 +63,12 @@ inline void ms(const uint16_t nMs)
     if (remain) {
         xms(remain);
     }
+}
+
+inline void s(uint16_t nS)
+{
+    while (nS--)
+        ms(1000);
 }
 
 } // namespace empp::platform::delay::systick
