@@ -1,37 +1,38 @@
 // gpio_ports.hpp
 #pragma once
 #include "empp/driver.hpp"
+#include "empp/type.hpp"
 
 namespace empp::platform::gpio {
 
 struct PortA
 {
-    static GPIO_TypeDef *regs() { return GPIOA; }
+    EMPP_ALWAYS_INLINE static GPIO_TypeDef *regs() noexcept { return GPIOA; }
 };
 
 struct PortB
 {
-    static GPIO_TypeDef *regs() { return GPIOB; }
+    EMPP_ALWAYS_INLINE static GPIO_TypeDef *regs() noexcept { return GPIOB; }
 };
 
 struct PortC
 {
-    static GPIO_TypeDef *regs() { return GPIOC; }
+    EMPP_ALWAYS_INLINE static GPIO_TypeDef *regs() noexcept { return GPIOC; }
 };
 
 struct PortD
 {
-    static GPIO_TypeDef *regs() { return GPIOD; }
+    EMPP_ALWAYS_INLINE static GPIO_TypeDef *regs() noexcept { return GPIOD; }
 };
 
 struct PortE
 {
-    static GPIO_TypeDef *regs() { return GPIOE; }
+    EMPP_ALWAYS_INLINE static GPIO_TypeDef *regs() noexcept { return GPIOE; }
 };
 
 struct PortH
 {
-    static GPIO_TypeDef *regs() { return GPIOH; }
+    EMPP_ALWAYS_INLINE static GPIO_TypeDef *regs() noexcept { return GPIOH; }
 };
 
 // More

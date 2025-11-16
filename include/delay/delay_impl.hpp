@@ -9,18 +9,24 @@ namespace empp::platform::delay {
 template <DelayBackend Backend>
 struct DelayImpl
 {
-    static void init() noexcept { Backend::init(); }
+    EMPP_ALWAYS_INLINE static void init() noexcept { Backend::init(); }
 
-    static void init(uint16_t sysclk_mhz) noexcept
+    EMPP_ALWAYS_INLINE static void init(uint16_t sysclk_mhz) noexcept
     {
         Backend::init(sysclk_mhz);
     }
 
-    static void us(uint32_t nUs) noexcept { Backend::us(nUs); }
+    EMPP_ALWAYS_INLINE static void us(uint32_t nUs) noexcept
+    {
+        Backend::us(nUs);
+    }
 
-    static void ms(uint16_t nMs) noexcept { Backend::ms(nMs); }
+    EMPP_ALWAYS_INLINE static void ms(uint16_t nMs) noexcept
+    {
+        Backend::ms(nMs);
+    }
 
-    static void s(uint16_t nS) noexcept { Backend::s(nS); }
+    EMPP_ALWAYS_INLINE static void s(uint16_t nS) noexcept { Backend::s(nS); }
 };
 
 using DelayDwt     = DelayImpl<DWTBackend>;

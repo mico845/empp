@@ -1,6 +1,7 @@
 // delay_dwt.hpp
 #pragma once
 #include "empp/driver.hpp"
+#include "empp/type.hpp"
 
 namespace empp::platform::delay {
 
@@ -15,7 +16,7 @@ struct DWTBackend
     static void init() noexcept;
     static void init(uint16_t sysclk_mhz) noexcept;
 
-    static void us(const uint32_t nUs) noexcept
+    EMPP_ALWAYS_INLINE static void us(const uint32_t nUs) noexcept
     {
         const uint32_t start = DWT->CYCCNT;
         const uint32_t ticks = nUs * ticks_per_us;
@@ -25,12 +26,12 @@ struct DWTBackend
     }
 
     // 延时 n 毫秒（单次最大约 8589.93ms @500MHz）
-    static void ms(const uint16_t nMs) noexcept
+    EMPP_ALWAYS_INLINE static void ms(const uint16_t nMs) noexcept
     {
         us(static_cast<uint32_t>(nMs * 1000ULL));
     }
 
-    static void s(uint16_t nS) noexcept
+    EMPP_ALWAYS_INLINE static void s(uint16_t nS) noexcept
     {
         while (nS--)
             ms(1000);

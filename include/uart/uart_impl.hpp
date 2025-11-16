@@ -1,12 +1,13 @@
+// uart_impl.hpp
 #pragma once
 #include "uart_id.hpp"
 
 namespace empp::platform::uart {
 
 template <typename UartId>
-struct Uart
+struct UartImpl
 {
-    static void write(uint8_t value)
+    static void write(uint8_t value) noexcept
     {
         while (!LL_USART_IsActiveFlag_TXE(UartId::regs())) {
         }

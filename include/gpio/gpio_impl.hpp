@@ -11,10 +11,13 @@ struct GpioImpl
 
     static constexpr uint32_t mask = (1u << Pin);
 
-    static void set() noexcept { Port::regs()->BSRR = mask; }
-    static void reset() noexcept { Port::regs()->BSRR = (mask << 16); }
+    EMPP_ALWAYS_INLINE static void set() noexcept { Port::regs()->BSRR = mask; }
+    EMPP_ALWAYS_INLINE static void reset() noexcept
+    {
+        Port::regs()->BSRR = (mask << 16);
+    }
 
-    static void toggle() noexcept
+    EMPP_ALWAYS_INLINE static void toggle() noexcept
     {
         if (auto regs = Port::regs(); regs->ODR & mask)
             regs->BSRR = (mask << 16);
@@ -22,7 +25,10 @@ struct GpioImpl
             regs->BSRR = mask;
     }
 
-    static bool read() noexcept { return (Port::regs()->IDR & mask) != 0; }
+    EMPP_ALWAYS_INLINE static bool read() noexcept
+    {
+        return (Port::regs()->IDR & mask) != 0;
+    }
 };
 
 } // namespace empp::platform::gpio

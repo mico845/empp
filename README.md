@@ -49,7 +49,7 @@ EMPP（Embedded Platform with C++） 是一款基于 STM32 的轻量级、追求
     ```
 
 4. 引用 EMPP
-    ```cpp
+    ```c++
     #include <empp.hpp>
     using namespace empp::stm32h7xx;
     ```
@@ -62,7 +62,7 @@ EMPP（Embedded Platform with C++） 是一款基于 STM32 的轻量级、追求
 
 点灯
 
-```cpp
+```c++
 #include "common_inc.h"
 using namespace empp::stm32h7xx;
 

@@ -15,14 +15,17 @@ using Backend = platform::delay::DWTBackend; // 默认用 DWT
 
 using Impl = platform::delay::DelayImpl<Backend>;
 
-inline void init() noexcept { Impl::init(); }
+EMPP_ALWAYS_INLINE void init() noexcept { Impl::init(); }
 
-inline void init(const uint32_t sysclk_mhz) noexcept { Impl::init(sysclk_mhz); }
+EMPP_ALWAYS_INLINE void init(const uint32_t sysclk_mhz) noexcept
+{
+    Impl::init(sysclk_mhz);
+}
 
-inline void us(const uint32_t nUs) noexcept { Impl::us(nUs); }
+EMPP_ALWAYS_INLINE void us(const uint32_t nUs) noexcept { Impl::us(nUs); }
 
-inline void ms(const uint16_t nMs) noexcept { Impl::ms(nMs); }
+EMPP_ALWAYS_INLINE void ms(const uint16_t nMs) noexcept { Impl::ms(nMs); }
 
-inline void s(const uint16_t nS) noexcept { Impl::s(nS); }
+EMPP_ALWAYS_INLINE void s(const uint16_t nS) noexcept { Impl::s(nS); }
 
-} // namespace empp::stm32h750::delay
+} // namespace empp::stm32h7xx::delay

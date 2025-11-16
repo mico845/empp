@@ -40,7 +40,7 @@ inline uint32_t EMPP_RCC_GetSystemClockFreq()
 }
 } // namespace platform::rcc
 
-namespace stm32h7::rcc {
+namespace stm32h7xx::rcc {
 inline uint32_t EMPP_RCC_GetSystemClockFreq()
 {
     return platform::rcc::EMPP_RCC_GetSystemClockFreq();
