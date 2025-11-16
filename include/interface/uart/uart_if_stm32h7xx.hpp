@@ -1,6 +1,6 @@
-// uart_if.hpp
+// uart_if_stm32h7xx.hpp
 #pragma once
-#include "uart_io.hpp"
+#include "platform/uart/uart_io.hpp"
 
 namespace empp::stm32h7xx::uart {
 

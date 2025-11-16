@@ -1,5 +1,12 @@
 #pragma once
 
-#include "gpio/gpio_if.hpp"
-#include "delay/delay_if.hpp"
-#include "uart/uart_if.hpp"
+#include "empp_config.hpp"
+
+#if EMPP_CHIP_STM32H7
+    #include "interface/gpio/gpio_if_stm32h7xx.hpp"
+    #include "interface/delay/delay_if_stm32h7xx.hpp"
+    #include "interface/uart/uart_if_stm32h7xx.hpp"
+    #include "interface/rcc/rcc_if_stm32h7xx.hpp"
+#else
+
+#endif

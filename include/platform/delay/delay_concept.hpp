@@ -8,10 +8,6 @@ template <typename T>
 concept DelayBackend =
     requires(uint32_t us, uint16_t ms, uint16_t s, uint16_t sys_mhz) {
         {
-            T::init()
-        } noexcept;
-
-        {
             T::init(sys_mhz)
         } noexcept;
 

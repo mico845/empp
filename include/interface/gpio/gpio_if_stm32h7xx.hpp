@@ -1,6 +1,6 @@
-// gpio_if.hpp
+// gpio_if_stm32h7xx.hpp
 #pragma once
-#include "gpio_pins.hpp"
+#include "platform/gpio/gpio_pins.hpp"
 
 namespace empp::stm32h7xx::gpio {
 // Port A Pins

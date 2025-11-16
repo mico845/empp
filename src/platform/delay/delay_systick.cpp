@@ -1,13 +1,7 @@
-#include "delay/delay_systick.hpp"
-#include "rcc/rcc.hpp"
+#include "platform/delay/delay_systick.hpp"
+#include "platform/rcc/rcc.hpp"
 
 namespace empp::platform::delay {
-
-void SysTickBackend::init() noexcept
-{
-    const uint32_t sysclk_mhz = rcc::EMPP_RCC_GetSystemClockFreq() / 1'000'000;
-    init(static_cast<uint16_t>(sysclk_mhz));
-}
 
 void SysTickBackend::init(const uint16_t sysclk_mhz) noexcept
 {

@@ -1,13 +1,8 @@
-#include "delay/delay_dwt.hpp"
-#include "rcc/rcc.hpp"
+#include "platform/delay/delay_dwt.hpp"
+#include "platform/rcc/rcc.hpp"
 
 namespace empp::platform::delay {
 
-void DWTBackend::init() noexcept
-{
-    const uint32_t sysclk_mhz = rcc::EMPP_RCC_GetSystemClockFreq() / 1'000'000;
-    init(static_cast<uint16_t>(sysclk_mhz));
-}
 void DWTBackend::init(uint16_t sysclk_mhz) noexcept
 {
     CoreDebug->DEMCR |= COREDEBUG_DWT_ENABLE; /* 使能DWT外设 */

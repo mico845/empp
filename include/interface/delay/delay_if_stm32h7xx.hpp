@@ -1,7 +1,8 @@
-// delay_if.hpp
+// delay_if_stm32h7xx.hpp
 #pragma once
-#include "delay_impl.hpp"
 #include "empp_config.hpp"
+#include "platform/delay/delay_impl.hpp"
+#include "interface/rcc/rcc_if_stm32h7xx.hpp"
 
 namespace empp::stm32h7xx::delay {
 
@@ -15,7 +16,10 @@ using Backend = platform::delay::DWTBackend; // 默认用 DWT
 
 using Impl = platform::delay::DelayImpl<Backend>;
 
-EMPP_ALWAYS_INLINE void init() noexcept { Impl::init(); }
+EMPP_ALWAYS_INLINE void init() noexcept
+{
+    Impl::init(rcc::EMPP_RCC_GetSystemClockFreq() / 1'000'000);
+}
 
 EMPP_ALWAYS_INLINE void init(const uint32_t sysclk_mhz) noexcept
 {

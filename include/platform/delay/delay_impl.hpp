@@ -9,8 +9,6 @@ namespace empp::platform::delay {
 template <DelayBackend Backend>
 struct DelayImpl
 {
-    EMPP_ALWAYS_INLINE static void init() noexcept { Backend::init(); }
-
     EMPP_ALWAYS_INLINE static void init(uint16_t sysclk_mhz) noexcept
     {
         Backend::init(sysclk_mhz);

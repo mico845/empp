@@ -1,9 +1,8 @@
 #pragma once
 #include "empp/driver.hpp"
 #include "empp/type.hpp"
-namespace empp {
 
-namespace platform::rcc {
+namespace empp::platform::rcc {
 EMPP_ALWAYS_INLINE uint32_t EMPP_RCC_GetSystemClockFreq()
 {
     uint32_t             frequency = 0U;
@@ -38,13 +37,4 @@ EMPP_ALWAYS_INLINE uint32_t EMPP_RCC_GetSystemClockFreq()
 
     return frequency;
 }
-} // namespace platform::rcc
-
-namespace stm32h7xx::rcc {
-EMPP_ALWAYS_INLINE uint32_t EMPP_RCC_GetSystemClockFreq()
-{
-    return platform::rcc::EMPP_RCC_GetSystemClockFreq();
-}
-} // namespace stm32h7xx::rcc
-
-} // namespace empp
+} // namespace empp::platform::rcc

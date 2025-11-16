@@ -14,7 +14,6 @@ struct SysTickBackend
     static constexpr uint32_t SYSTICK_ENABLE    = SysTick_CTRL_ENABLE_Msk;
     static constexpr uint32_t SYSTICK_COUNTFLAG = SysTick_CTRL_COUNTFLAG_Msk;
 
-    static void init() noexcept;
     static void init(uint16_t sysclk_mhz) noexcept;
 
     EMPP_ALWAYS_INLINE static void us(const uint32_t nUs) noexcept
