@@ -1,7 +1,8 @@
+// gpio_ports.hpp
 #pragma once
 #include "empp/driver.hpp"
 
-namespace empp::stm32h7::gpio {
+namespace empp::platform::gpio {
 
 struct PortA
 {
@@ -35,4 +36,4 @@ struct PortH
 
 // More
 
-} // namespace empp::stm32h7::gpio
+} // namespace empp::platform::gpio

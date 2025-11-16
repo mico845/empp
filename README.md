@@ -6,7 +6,7 @@ EMPP（Embedded Platform with C++） 是一款基于 STM32 的轻量级、追求
 
 - 🧵 低抽象开销：尽可能让功能均可在编译期内联展开
 - ⚡ 接近裸寄存器的执行性能
-- 🧑‍💻 现代 C++ 风格的嵌入式编程
+- 🧑‍💻 C++20 风格的嵌入式编程
 
 目前支持：
 
@@ -51,7 +51,7 @@ EMPP（Embedded Platform with C++） 是一款基于 STM32 的轻量级、追求
 4. 引用 EMPP
     ```cpp
     #include <empp.hpp>
-    using namespace empp::stm32h7;
+    using namespace empp::stm32h7xx;
     ```
 
 ---
@@ -60,31 +60,20 @@ EMPP（Embedded Platform with C++） 是一款基于 STM32 的轻量级、追求
 
 ### 示例：GPIO + Delay
 
-按钮反转RGB灯
+点灯
 
 ```cpp
 #include "common_inc.h"
+using namespace empp::stm32h7xx;
 
-using Led_R = gpio::C0;
-using Led_G = gpio::C1;
-using Led_B = gpio::C2;
-using Key   = gpio::C13;
+using Led = gpio::C13;
 
 void Main()
 {
-
     delay::init();
-    
     while (true) {
-        if (!Key::read()) {
-            delay::ms(20);
-            while (!Key::read()) {
-            }
-            Led_R::toggle();
-            Led_G::toggle();
-            Led_B::toggle();
-            delay::ms(20);
-        }
+        Led::toggle();
+        delay::ms(500);
     }
 }
 ```

@@ -1,11 +1,13 @@
 #pragma once
 #include "empp/driver.hpp"
 
-namespace empp::stm32h7::uart {
+namespace empp::platform::uart {
 
 struct Uart1
 {
     static USART_TypeDef *regs() { return USART1; }
 };
 
-} // namespace empp::stm32h7::uart
+/* More */
+
+} // namespace empp::platform::uart

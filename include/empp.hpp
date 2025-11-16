@@ -1,4 +1,4 @@
 #pragma once
 
-#include "gpio/gpio_pins.hpp"
-#include "delay/delay.hpp"
+#include "gpio/gpio_if.hpp"
+#include "delay/delay_if.hpp"
