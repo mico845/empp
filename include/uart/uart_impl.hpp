@@ -7,7 +7,7 @@ namespace empp::platform::uart {
 template <typename UartId>
 struct UartImpl
 {
-    static void write(uint8_t value) noexcept
+    EMPP_ALWAYS_INLINE static void write(uint8_t value) noexcept
     {
         while (!LL_USART_IsActiveFlag_TXE(UartId::regs())) {
         }

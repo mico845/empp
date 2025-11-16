@@ -78,6 +78,24 @@ void Main()
 }
 ```
 
+### 示例：UART
+
+```c++
+#include "common_inc.h"
+using namespace empp::stm32h7xx;
+
+using Com1 = uart::U1;
+
+void Main()
+{
+    delay::init();
+    while (true) {
+        Com1::print("hello world\n");
+        delay::s(1);
+    }
+}
+```
+
 ## 📁 推荐目录结构
 
 ```
