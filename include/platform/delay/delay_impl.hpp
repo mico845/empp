@@ -1,8 +1,6 @@
 // delay_impl.hpp
 #pragma once
 #include "delay_concept.hpp"
-#include "delay_dwt.hpp"
-#include "delay_systick.hpp"
 
 namespace empp::platform::delay {
 
@@ -24,10 +22,11 @@ struct DelayImpl
         Backend::ms(nMs);
     }
 
-    EMPP_ALWAYS_INLINE static void s(uint16_t nS) noexcept { Backend::s(nS); }
+    EMPP_ALWAYS_INLINE static void s(uint16_t nS) noexcept
+    {
+        while (nS--)
+            ms(1000);
+    }
 };
-
-using DelayDwt     = DelayImpl<DWTBackend>;
-using DelaySysTick = DelayImpl<SysTickBackend>;
 
 } // namespace empp::platform::delay

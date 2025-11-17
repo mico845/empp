@@ -1,14 +1,17 @@
-// delay_dwt.hpp
+// delay_dwt_backend_stm32h7xx.hpp
 #pragma once
-#include "empp/driver.hpp"
-#include "empp/type.hpp"
+#include "empp_config.hpp"
+#if defined(EMPP_CHIP_STM32H7)
 
-namespace empp::platform::delay {
+    #include "empp/driver.hpp"
+    #include "empp/type.hpp"
+    #include "platform/delay/delay_state.hpp"
+
+namespace empp::stm32h7xx::delay {
 
 struct DWTBackend
 {
-    static inline uint32_t ticks_per_us =
-        0; // 每 1us 需要多少个 CPU 周期（= sysclk MHz）
+    using delay_state = platform::delay::DelayState;
 
     static constexpr uint32_t COREDEBUG_DWT_ENABLE = CoreDebug_DEMCR_TRCENA_Msk;
     static constexpr uint32_t DWT_ENABLE           = DWT_CTRL_CYCCNTENA_Msk;
@@ -18,7 +21,7 @@ struct DWTBackend
     EMPP_ALWAYS_INLINE static void us(const uint32_t nUs) noexcept
     {
         const uint32_t start = DWT->CYCCNT;
-        const uint32_t ticks = nUs * ticks_per_us;
+        const uint32_t ticks = nUs * delay_state::ticks_per_us;
         while (DWT->CYCCNT - start < ticks) {
             __NOP();
         }
@@ -29,12 +32,8 @@ struct DWTBackend
     {
         us(static_cast<uint32_t>(nMs * 1000ULL));
     }
-
-    EMPP_ALWAYS_INLINE static void s(uint16_t nS) noexcept
-    {
-        while (nS--)
-            ms(1000);
-    }
 };
 
-} // namespace empp::platform::delay
+} // namespace empp::stm32h7xx::delay
+
+#endif

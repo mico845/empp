@@ -1,13 +1,18 @@
-// delay_systick.hpp
+// delay_systick_backend_stm32h7xx.hpp
 #pragma once
-#include "empp/driver.hpp"
-#include "empp/type.hpp"
+#include "empp_config.hpp"
+#if defined(EMPP_CHIP_STM32H7)
 
-namespace empp::platform::delay {
+    #include "empp/driver.hpp"
+    #include "empp/type.hpp"
+    #include "platform/delay/delay_state.hpp"
+
+namespace empp::stm32h7xx::delay {
 
 struct SysTickBackend
 {
-    static inline uint32_t ticks_per_us = 0;
+
+    using delay_state = platform::delay::DelayState;
 
     static constexpr uint32_t SYSTICK_CLKSOURCE_CPU =
         SysTick_CTRL_CLKSOURCE_Msk;
@@ -18,7 +23,7 @@ struct SysTickBackend
 
     EMPP_ALWAYS_INLINE static void us(const uint32_t nUs) noexcept
     {
-        const uint32_t ticks = nUs * ticks_per_us;
+        const uint32_t ticks = nUs * delay_state::ticks_per_us;
 
         SysTick->LOAD = ticks;           // 加载倒计时时间
         SysTick->VAL  = 0;               // 清空当前计数
@@ -49,18 +54,12 @@ struct SysTickBackend
         }
     }
 
-    EMPP_ALWAYS_INLINE static void s(uint16_t nS) noexcept
-    {
-        while (nS--)
-            ms(1000);
-    }
-
 private:
     // 延时 n 毫秒（单次最大约 34.95ms @480MHz）
     EMPP_ALWAYS_INLINE static void xms(const uint16_t nMs) noexcept
     {
-        const uint32_t ticks =
-            nMs * ticks_per_us * 1000u; // 时间加载(SysTick->LOAD为24bit,故 ms
+        const uint32_t ticks = nMs * delay_state::ticks_per_us
+                               * 1000u; // 时间加载(SysTick->LOAD为24bit,故 ms
                                         // <= 2^24 *1000/SYSCLK)
 
         SysTick->LOAD = ticks;           // 加载倒计时时间
@@ -76,4 +75,6 @@ private:
     }
 };
 
-} // namespace empp::platform::delay
+} // namespace empp::stm32h7xx::delay
+
+#endif

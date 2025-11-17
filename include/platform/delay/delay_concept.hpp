@@ -17,9 +17,6 @@ concept DelayBackend =
         {
             T::ms(ms)
         } noexcept;
-        {
-            T::s(s)
-        } noexcept;
     };
 
 } // namespace empp::platform::delay

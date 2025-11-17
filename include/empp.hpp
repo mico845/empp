@@ -6,7 +6,6 @@
     #include "interface/gpio/gpio_if_stm32h7xx.hpp"
     #include "interface/delay/delay_if_stm32h7xx.hpp"
     #include "interface/uart/uart_if_stm32h7xx.hpp"
-    #include "interface/rcc/rcc_if_stm32h7xx.hpp"
 #else
 
 #endif
