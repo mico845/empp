@@ -1,17 +1,15 @@
 // uart_impl.hpp
 #pragma once
-#include "uart_id.hpp"
+#include "platform/uart/uart_concept.hpp"
 
 namespace empp::platform::uart {
 
-template <typename UartId>
+template <UartBackend Backend>
 struct UartImpl
 {
-    EMPP_ALWAYS_INLINE static void write(uint8_t value) noexcept
+    EMPP_ALWAYS_INLINE static void write(const uint8_t value) noexcept
     {
-        while (!(UartId::regs()->ISR & USART_ISR_TXE_TXFNF)) {
-        }
-        UartId::regs()->TDR = value;
+        Backend::write(value);
     }
 };
 } // namespace empp::platform::uart

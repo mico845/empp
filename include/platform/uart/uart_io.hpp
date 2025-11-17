@@ -1,5 +1,6 @@
 // uart_io.hpp
 #pragma once
+#include "empp/type.hpp"
 #include "uart_impl.hpp"
 
 #include <cstdio>
@@ -7,11 +8,11 @@
 
 namespace empp::platform::uart {
 
-template <typename UartId>
+template <UartBackend Backend>
 class UartIO
 {
 public:
-    using Impl = UartImpl<UartId>;
+    using Impl = UartImpl<Backend>;
 
     EMPP_ALWAYS_INLINE static void print(const char c) noexcept
     {

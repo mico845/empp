@@ -10,7 +10,7 @@
 namespace empp::stm32h7xx::gpio {
 
 template <platform::gpio::PinId ID>
-struct Stm32H7Backend
+struct GpioBackend
 {
 
     static constexpr uint32_t MASK       = (1u << ID.pin);
