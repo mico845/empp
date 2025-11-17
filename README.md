@@ -2,7 +2,9 @@
 
 EMPP（Embedded Platform with C++） 是一款基于 STM32 的轻量级、追求高性能现代 C++ 嵌入式框架。
 
-![EMPP](https://github.com/mico845/empp/doc/icon/empp.png#pic_center)
+<p align="center">
+  <img src="https://raw.githubusercontent.com/mico845/empp/main/doc/icon/empp.png" width="280">
+</p>
 
 核心理念：
 
