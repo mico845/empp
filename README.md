@@ -189,7 +189,7 @@ empp_pjt/
 
 ## 📕 原理讲解
 
-[CSDN 使用现代 C++ 特性开发 STM32 的可能性测试](https://blog.csdn.net/DreamTrue520/article/details/154950184?spm=1001.2014.3001.5502)
+[【CSDN 使用现代 C++ 特性开发 STM32 的可能性测试】](https://blog.csdn.net/DreamTrue520/article/details/154950184?spm=1001.2014.3001.5502)
 
 ---
 
