@@ -64,12 +64,9 @@ EMPP（Embedded Platform with C++） 是一款基于 STM32 的轻量级、追求
 
 ### 示例：GPIO + Delay
 
-点灯
+闪烁点灯
 
 ```c++
-#include "common_inc.h"
-using namespace empp::stm32h7xx;
-
 using Led = gpio::PC13;
 
 void Main()
@@ -84,18 +81,33 @@ void Main()
 
 ### 示例：UART
 
-```c++
-#include "common_inc.h"
-using namespace empp::stm32h7xx;
+非中断发送 `"hello world\r\n"`
 
+```c++
 using Com1 = uart::U1;
 
 void Main()
 {
     delay::init();
     while (true) {
-        Com1::print("hello world\n");
+        Com1::println("hello world");
         delay::s(1);
+    }
+}
+```
+
+非中断接收 如果是 `'r'` 则反转 LED 电平
+
+```c++
+using Com1 = uart::U1;
+using Led  = gpio::PC13;
+
+void Main()
+{
+    while (true) {
+        if (const auto r = Com1::read(); r == 't') {
+            Led::toggle();
+        }
     }
 }
 ```
@@ -117,6 +129,12 @@ empp_pjt/
    ├─ Main.cpp           
    └─ CMakeLists.txt
 ```
+
+---
+
+## 📕 原理讲解
+
+[CSDN 使用现代 C++ 特性开发 STM32 的可能性测试](https://blog.csdn.net/DreamTrue520/article/details/154950184?spm=1001.2014.3001.5502)
 
 ---
 
