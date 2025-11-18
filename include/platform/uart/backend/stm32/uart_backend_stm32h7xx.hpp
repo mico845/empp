@@ -61,10 +61,30 @@ struct UARTBackend
         Irq::register_callback_tx(UartId, cb);
     }
 
+    EMPP_ALWAYS_INLINE static void enable_rx_irq() noexcept
+    {
+        regs()->CR1 |= USART_CR1_RXNEIE;
+    }
+
+    EMPP_ALWAYS_INLINE static void disable_rx_irq() noexcept
+    {
+        regs()->CR1 &= ~USART_CR1_RXNEIE;
+    }
+
+    EMPP_ALWAYS_INLINE static void
+    register_callback_rx(const Callback cb) noexcept
+    {
+        Irq::register_callback_rx(UartId, cb);
+    }
+
     EMPP_ALWAYS_INLINE static void handle_irq() noexcept
     {
         if (regs()->ISR & USART_ISR_TXE_TXFNF) {
             Irq::dispatch_tx(UartId);
+        }
+
+        if (regs()->ISR & USART_ISR_RXNE_RXFNE) {
+            Irq::dispatch_rx(UartId);
         }
     }
 };

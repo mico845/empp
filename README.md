@@ -96,7 +96,39 @@ void Main()
 }
 ```
 
-非中断接收 如果是 `'r'` 则反转 LED 电平
+中断发送 `"hello\r\n"`
+
+```c++
+#include "common_inc.h"
+
+using Com1 = uart::U1;
+
+constexpr uint8_t str[]   = "hello\r\n";
+constexpr uint8_t str_len = sizeof(str) - 1;
+
+void callback_tx()
+{
+    static uint8_t tx_byte_nums = 0;
+    if (tx_byte_nums < str_len) {
+        Com1::write(str[tx_byte_nums++]);
+    }
+    else {
+        Com1::disable_tx_irq();
+    }
+}
+
+void Main()
+{
+
+    Com1::register_callback_tx(callback_tx);
+    Com1::enable_tx_irq();
+
+    while (true) {
+    }
+}
+```
+
+非中断接收 如果是 `'t'` 则反转 LED 电平
 
 ```c++
 using Com1 = uart::U1;
@@ -107,6 +139,29 @@ void Main()
     while (true) {
         if (const auto r = Com1::read(); r == 't') {
             Led::toggle();
+        }
+    }
+}
+```
+
+中断接收 如果是 `'t'` 则反转 LED 电平
+
+```c++
+using Com1 = uart::U1;
+using Led  = gpio::PC13;
+static volatile uint8_t ch;
+
+void callback_rx() { ch = Com1::read(); }
+
+void Main()
+{
+    Com1::register_callback_rx(callback_rx);
+    Com1::enable_rx_irq();
+
+    while (true) {
+        if (ch == 't') {
+            Led::toggle();
+            ch = 0;
         }
     }
 }

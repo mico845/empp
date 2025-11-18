@@ -34,6 +34,22 @@ struct UartImpl
         Backend::register_callback_tx(cb);
     }
 
+    EMPP_ALWAYS_INLINE static void enable_rx_irq() noexcept
+    {
+        Backend::enable_rx_irq();
+    }
+
+    EMPP_ALWAYS_INLINE static void disable_rx_irq() noexcept
+    {
+        Backend::disable_rx_irq();
+    }
+
+    EMPP_ALWAYS_INLINE static void
+    register_callback_rx(const Callback cb) noexcept
+    {
+        Backend::register_callback_rx(cb);
+    }
+
     EMPP_ALWAYS_INLINE static void handle_irq() noexcept
     {
         Backend::handle_irq();
