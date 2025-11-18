@@ -16,7 +16,14 @@ struct DWTBackend
     static constexpr uint32_t COREDEBUG_DWT_ENABLE = CoreDebug_DEMCR_TRCENA_Msk;
     static constexpr uint32_t DWT_ENABLE           = DWT_CTRL_CYCCNTENA_Msk;
 
-    static void init(uint16_t sysclk_mhz) noexcept;
+    EMPP_ALWAYS_INLINE static void init(const uint16_t sysclk_mhz) noexcept
+    {
+        CoreDebug->DEMCR |= COREDEBUG_DWT_ENABLE; /* 使能DWT外设 */
+        DWT->CYCCNT = 0;                          /* DWT CYCCNT 寄存器计数清0 */
+        DWT->CTRL |= DWT_ENABLE; /* 使能Cortex-M DWT CYCCNT 寄存器 */
+
+        delay_state::ticks_per_us = sysclk_mhz; // 1us = sysclk_mhz tick
+    }
 
     EMPP_ALWAYS_INLINE static void us(const uint32_t nUs) noexcept
     {

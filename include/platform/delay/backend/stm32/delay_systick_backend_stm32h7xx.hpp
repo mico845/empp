@@ -19,7 +19,14 @@ struct SysTickBackend
     static constexpr uint32_t SYSTICK_ENABLE    = SysTick_CTRL_ENABLE_Msk;
     static constexpr uint32_t SYSTICK_COUNTFLAG = SysTick_CTRL_COUNTFLAG_Msk;
 
-    static void init(uint16_t sysclk_mhz) noexcept;
+    EMPP_ALWAYS_INLINE static void init(const uint16_t sysclk_mhz) noexcept
+    {
+        SysTick->CTRL |=
+            SYSTICK_CLKSOURCE_CPU; //  clock source -> Processor clock
+        SysTick->CTRL &= ~SYSTICK_ENABLE;
+
+        delay_state::ticks_per_us = sysclk_mhz; // 1us = sysclk_mhz tick
+    }
 
     EMPP_ALWAYS_INLINE static void us(const uint32_t nUs) noexcept
     {
