@@ -8,6 +8,9 @@ concept UartBackend = requires(uint8_t value, Callback cb) {
         T::write(value)
     } noexcept;
     {
+        T::read()
+    } noexcept -> std::same_as<uint8_t>;
+    {
         T::enable_tx_irq()
     } noexcept;
     {

@@ -1,7 +1,7 @@
 // empp.h
 #pragma once
 
-#include "empp_config.hpp"
+#include "empp_config.h"
 
 #ifdef __cplusplus
 extern "C" {

@@ -1,6 +1,6 @@
 // uart_backend_stm32h7xx.hpp
 #pragma once
-#include "empp_config.hpp"
+#include "empp_config.h"
 
 #if defined(EMPP_CHIP_STM32H7)
     #include "empp/driver.hpp"
@@ -36,6 +36,13 @@ struct UARTBackend
         while (!(regs()->ISR & USART_ISR_TXE_TXFNF)) {
         }
         regs()->TDR = value;
+    }
+
+    EMPP_ALWAYS_INLINE static uint8_t read() noexcept
+    {
+        while (!(regs()->ISR & USART_ISR_RXNE_RXFNE)) {
+        }
+        return static_cast<uint8_t>(regs()->RDR);
     }
 
     EMPP_ALWAYS_INLINE static void enable_tx_irq() noexcept

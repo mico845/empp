@@ -8,7 +8,6 @@ void Main()
 
     while (true) {
         Led::toggle();
-
         delay::ms(500);
     }
 }

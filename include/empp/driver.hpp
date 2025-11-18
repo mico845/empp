@@ -1,6 +1,6 @@
 #pragma once
 
-#include "empp_config.hpp"
+#include "empp_config.h"
 
 #if defined(EMPP_CHIP_STM32H7)
     #include "stm32h7xx.h"

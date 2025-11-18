@@ -1,6 +1,6 @@
 // gpio_backend_stm32h7xx.hpp
 #pragma once
-#include "empp_config.hpp"
+#include "empp_config.h"
 
 #if defined(EMPP_CHIP_STM32H7)
 

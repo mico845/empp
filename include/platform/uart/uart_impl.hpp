@@ -12,6 +12,12 @@ struct UartImpl
     {
         Backend::write(value);
     }
+
+    EMPP_ALWAYS_INLINE static uint8_t read() noexcept
+    {
+        return Backend::read();
+    }
+
     EMPP_ALWAYS_INLINE static void enable_tx_irq() noexcept
     {
         Backend::enable_tx_irq();
