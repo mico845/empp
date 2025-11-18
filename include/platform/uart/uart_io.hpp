@@ -9,7 +9,7 @@
 namespace empp::platform::uart {
 
 template <UartBackend Backend>
-class UartIO
+class UartIO : public UartImpl<Backend>
 {
 public:
     using Impl = UartImpl<Backend>;
@@ -46,6 +46,11 @@ public:
     {
         print_any(args...);
         print("\r\n");
+    }
+
+    EMPP_ALWAYS_INLINE static void on_tx(Callback cb) noexcept
+    {
+        Impl::register_callback_tx(cb);
     }
 
 private:

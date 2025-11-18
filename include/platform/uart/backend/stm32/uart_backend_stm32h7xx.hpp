@@ -5,8 +5,11 @@
 #if defined(EMPP_CHIP_STM32H7)
     #include "empp/driver.hpp"
     #include "empp/type.hpp"
+    #include "platform/uart/uart_dispatcher.hpp"
 
 namespace empp::stm32h7xx::uart {
+
+using Irq = platform::uart::UartDispatcher;
 
 template <uint8_t UartId>
 struct UARTBackend
@@ -33,6 +36,29 @@ struct UARTBackend
         while (!(regs()->ISR & USART_ISR_TXE_TXFNF)) {
         }
         regs()->TDR = value;
+    }
+
+    EMPP_ALWAYS_INLINE static void enable_tx_irq() noexcept
+    {
+        regs()->CR1 |= USART_CR1_TXEIE;
+    }
+
+    EMPP_ALWAYS_INLINE static void disable_tx_irq() noexcept
+    {
+        regs()->CR1 &= ~USART_CR1_TXEIE;
+    }
+
+    EMPP_ALWAYS_INLINE static void
+    register_callback_tx(const Callback cb) noexcept
+    {
+        Irq::register_callback_tx(UartId, cb);
+    }
+
+    EMPP_ALWAYS_INLINE static void handle_irq() noexcept
+    {
+        if (regs()->ISR & USART_ISR_TXE_TXFNF) {
+            Irq::dispatch_tx(UartId);
+        }
     }
 };
 

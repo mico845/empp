@@ -49,7 +49,7 @@ EMPP（Embedded Platform with C++） 是一款基于 STM32 的轻量级、追求
     )
     
     # Platform 依赖 STM32CubeMX 生成的 HAL/LL 头文件
-    target_link_libraries(empp_platform INTERFACE stm32cubemx)
+   target_link_libraries(empp_platform PUBLIC stm32cubemx)
     ```
 
 4. 引用 EMPP
