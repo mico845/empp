@@ -13,5 +13,5 @@ target_compile_features(empp_platform PUBLIC cxx_std_20)
 
 # 源文件
 target_sources(empp_platform PRIVATE
-        src/interface/stm32/uart_irq_dispatcher_stm32h7xx.cpp
+        src/interface/platform/stm32/uart_irq_dispatcher_stm32h7xx.cpp
 )

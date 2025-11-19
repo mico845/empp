@@ -9,6 +9,23 @@
 
 namespace empp::stm32h7xx::gpio {
 
+/*
+ * 当产品电压较低时启用 I/O 速度优化
+ * 仅产品供电电压低于 2.7 V 时才必须使用此位。当 VDD 高于 2.7 V
+ * 时设置此位可能会造成破坏。
+ * 详情可以参考 STM32H7
+ * 开启IO补偿单元和关闭补偿单元，GPIO配置不同速度等级的最高速度
+ */
+EMPP_ALWAYS_INLINE static void enable_speed_optimization() noexcept
+{
+    SYSCFG->CCCSR |= SYSCFG_CCCSR_HSLV;
+}
+
+EMPP_ALWAYS_INLINE static void disable_speed_optimization() noexcept
+{
+    SYSCFG->CCCSR &= ~SYSCFG_CCCSR_HSLV;
+}
+
 template <platform::gpio::PinId ID>
 struct GpioBackend
 {
@@ -46,10 +63,22 @@ struct GpioBackend
 
     EMPP_ALWAYS_INLINE static void toggle() noexcept
     {
+        /*
+         * 电平反转不选择使用 regs()->ODR ^= MASK;
+         * 是因为这一句话其实是三步操作：
+         * 1. 读 ODR     ODR = GPIO->ODR;
+         * 2. 异或 MASK   ODR ^= MASK;
+         * 3. 写回 ODR    GPIO->ODR = ODR;
+         * 可见其存在非线程安全行为，如中断修改 ODR 值，会导致 新的ODR 被旧的
+         */
+    #if 0
+        regs()->ODR ^= MASK;
+    #else
         if (auto *r = regs(); r->ODR & MASK)
             r->BSRR = MASK_RESET;
         else
             r->BSRR = MASK;
+    #endif
     }
 
     EMPP_ALWAYS_INLINE static bool read() noexcept

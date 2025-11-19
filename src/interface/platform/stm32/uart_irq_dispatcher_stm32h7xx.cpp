@@ -1,6 +1,6 @@
 // uart_irq_dispatcher_stm32h7xx.cpp
-#include "interface/uart/stm32/uart_irq_dispatcher_stm32h7xx.h"
-#include "interface/uart/stm32/uart_if_stm32h7xx.hpp"
+#include "interface/platform/uart/stm32/uart_irq_dispatcher_stm32h7xx.h"
+#include "interface/platform/uart/stm32/uart_if_stm32h7xx.hpp"
 
 using U1 = empp::stm32h7xx::uart::U1;
 using U2 = empp::stm32h7xx::uart::U2;

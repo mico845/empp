@@ -8,7 +8,7 @@ extern "C" {
 #endif
 /*---------------------------- C Scope ---------------------------*/
 #if EMPP_CHIP_STM32H7
-    #include "interface/uart/stm32/uart_irq_dispatcher_stm32h7xx.h"
+    #include "interface/platform/uart/stm32/uart_irq_dispatcher_stm32h7xx.h"
 #else
 
 #endif
@@ -19,10 +19,16 @@ extern "C" {
 /*---------------------------- C++ Scope ---------------------------*/
 
     #if EMPP_CHIP_STM32H7
-        #include "interface/gpio/stm32/gpio_if_stm32h7xx.hpp"
-        #include "interface/delay/stm32/delay_if_stm32h7xx.hpp"
-        #include "interface/uart/stm32/uart_if_stm32h7xx.hpp"
+        #include "interface/platform/gpio/stm32/gpio_if_stm32h7xx.hpp"
+        #include "interface/platform/delay/stm32/delay_if_stm32h7xx.hpp"
+        #include "interface/platform/uart/stm32/uart_if_stm32h7xx.hpp"
     #else
+
+    #endif
+
+    #if EMPP_COMPONENTS_ON
+
+        #include "interface/components/rgb_3gpio.hpp"
 
     #endif
 

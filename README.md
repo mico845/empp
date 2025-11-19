@@ -99,8 +99,6 @@ void Main()
 中断发送 `"hello\r\n"`
 
 ```c++
-#include "common_inc.h"
-
 using Com1 = uart::U1;
 
 constexpr uint8_t str[]   = "hello\r\n";
@@ -166,6 +164,9 @@ void Main()
     }
 }
 ```
+
+
+**更多例程** 👉 [example](https://github.com/mico845/empp/tree/main/doc/example)
 
 ## 📁 推荐目录结构
 
