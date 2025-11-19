@@ -9,6 +9,7 @@ using Led_RGB = rgb_3gpio<Led_R, Led_G, Led_B>;
 void Main()
 {
     delay::init();
+    Led_RGB::off();
 
     while (true) {
         Led_RGB::red();

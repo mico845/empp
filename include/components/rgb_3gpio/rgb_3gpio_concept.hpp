@@ -11,8 +11,5 @@ concept Pinx = requires {
     {
         T::reset()
     } noexcept;
-    {
-        T::toggle()
-    } noexcept;
 };
 } // namespace empp::componentBase::rgb_3gpio

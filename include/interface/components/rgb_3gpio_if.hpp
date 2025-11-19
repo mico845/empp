@@ -1,4 +1,4 @@
-// rgb_3gpio.hpp
+// rgb_3gpio_if.hpp
 #pragma once
 #include "components/rgb_3gpio/rgb_3gpio.hpp"
 

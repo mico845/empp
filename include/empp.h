@@ -28,7 +28,7 @@ extern "C" {
 
     #if EMPP_COMPONENTS_ON
 
-        #include "interface/components/rgb_3gpio.hpp"
+        #include "interface/components/rgb_3gpio_if.hpp"
 
     #endif
 
