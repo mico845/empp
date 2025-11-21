@@ -22,6 +22,7 @@ extern "C" {
         #include "interface/platform/gpio/stm32/gpio_if_stm32h7xx.hpp"
         #include "interface/platform/delay/stm32/delay_if_stm32h7xx.hpp"
         #include "interface/platform/uart/stm32/uart_if_stm32h7xx.hpp"
+        #include "interface/platform/spi/stm32/spi_if_stm32h7xx.hpp"
     #else
 
     #endif
