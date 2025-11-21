@@ -15,3 +15,10 @@ target_compile_features(empp_platform PUBLIC cxx_std_20)
 target_sources(empp_platform PRIVATE
         src/interface/platform/stm32/uart_irq_dispatcher_stm32h7xx.cpp
 )
+
+# 禁用 LwRB 的 C11 atomic
+target_compile_definitions(empp_platform PUBLIC LWRB_DISABLE_ATOMIC=1)
+
+add_subdirectory(thirdparty/lwrb/lwrb)
+
+target_link_libraries(empp_platform PUBLIC lwrb)

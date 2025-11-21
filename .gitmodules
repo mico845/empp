@@ -1,0 +1,3 @@
+[submodule "thirdparty/lwrb"]
+	path = thirdparty/lwrb
+	url = https://github.com/MaJerle/lwrb.git
