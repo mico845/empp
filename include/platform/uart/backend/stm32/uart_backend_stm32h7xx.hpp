@@ -34,6 +34,7 @@ struct UARTBackend
     EMPP_ALWAYS_INLINE static void write(const uint8_t value) noexcept
     {
         while (!(regs()->ISR & USART_ISR_TXE_TXFNF)) {
+            /* busy wait */
         }
         regs()->TDR = value;
     }
@@ -41,6 +42,7 @@ struct UARTBackend
     EMPP_ALWAYS_INLINE static uint8_t read() noexcept
     {
         while (!(regs()->ISR & USART_ISR_RXNE_RXFNE)) {
+            /* busy wait */
         }
         return static_cast<uint8_t>(regs()->RDR);
     }

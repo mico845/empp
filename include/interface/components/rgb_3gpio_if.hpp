@@ -1,6 +1,6 @@
 // rgb_3gpio_if.hpp
 #pragma once
-#include "components/rgb_3gpio/rgb_3gpio.hpp"
+#include "components/display/rgb_3gpio/rgb_3gpio.hpp"
 
 namespace empp::components {
 

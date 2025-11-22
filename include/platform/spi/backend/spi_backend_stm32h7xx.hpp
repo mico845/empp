@@ -5,7 +5,6 @@
 #if defined(EMPP_CHIP_STM32H7)
     #include "empp/driver.hpp"
     #include "empp/type.hpp"
-    #include "platform/spi/spi_impl.hpp"
 
 namespace empp::stm32h7xx::spi {
 
@@ -29,45 +28,34 @@ struct SPIBackend
         return SPI1;
     }
 
-    EMPP_ALWAYS_INLINE static void enable() noexcept
+    EMPP_ALWAYS_INLINE static void write(const uint8_t *buf,
+                                         uint16_t       count) noexcept
     {
+        regs()->CR2 = (regs()->CR2 & ~SPI_CR2_TSIZE)
+                      | (static_cast<uint32_t>(count) & SPI_CR2_TSIZE);
+
         regs()->CR1 |= SPI_CR1_SPE;
         regs()->CR1 |= SPI_CR1_CSTART;
-    }
 
-    EMPP_ALWAYS_INLINE static void disable() noexcept
-    {
+        while (count > 0U) {
+            if (regs()->SR & SPI_SR_TXP) {
+                *reinterpret_cast<volatile uint8_t *>(&regs()->TXDR) = *buf;
+                buf += sizeof(uint8_t);
+                --count;
+            }
+        }
+
+        while (!(regs()->SR & SPI_SR_EOT)) {
+        }
+
+        regs()->IFCR |= (SPI_IFCR_EOTC | SPI_IFCR_TXTFC);
+
         regs()->CR1 &= ~SPI_CR1_SPE;
     }
 
-    EMPP_ALWAYS_INLINE static void write(const uint32_t value) noexcept
+    EMPP_ALWAYS_INLINE static void write(const uint8_t value) noexcept
     {
-        while (!(regs()->SR & SPI_SR_TXP)) {
-        }
-
-        regs()->TXDR = value;
-
-        while (!(regs()->SR & SPI_SR_TXC)) {
-        }
-    }
-    EMPP_ALWAYS_INLINE static uint32_t read() noexcept
-    {
-        while (!(regs()->SR & SPI_SR_RXP)) {
-        }
-
-        return regs()->RXDR;
-    }
-
-    // FULL DUPLEX
-    EMPP_ALWAYS_INLINE static uint32_t readWrite(const uint32_t value) noexcept
-    {
-        while (!(regs()->SR & SPI_SR_TXP)) {
-        }
-        regs()->TXDR = value;
-
-        while (!(regs()->SR & SPI_SR_RXP)) {
-        }
-        return regs()->RXDR;
+        write(&value, 1);
     }
 };
 } // namespace empp::stm32h7xx::spi

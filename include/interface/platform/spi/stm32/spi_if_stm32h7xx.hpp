@@ -5,6 +5,7 @@
 #if defined(EMPP_CHIP_STM32H7)
 
     #include "platform/spi/backend/spi_backend_stm32h7xx.hpp"
+    #include "platform/spi/spi_impl.hpp"
 
 namespace empp::stm32h7xx::spi {
 
