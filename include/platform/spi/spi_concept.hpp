@@ -5,9 +5,9 @@
 namespace empp::platform::spi {
 
 template <typename T>
-concept SpiBackend = requires(uint8_t value) {
+concept SpiBackend = requires(uint8_t *value_8, uint16_t count) {
     {
-        T::write(value)
+        T::template write<uint8_t>(value_8, count)
     } noexcept;
 };
 

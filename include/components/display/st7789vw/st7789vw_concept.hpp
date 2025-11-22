@@ -16,9 +16,12 @@ concept Pinx = requires {
 };
 
 template <typename T>
-concept Spix = requires(uint8_t v) {
+concept Spix = requires(uint8_t v_8, uint16_t v_16) {
     {
-        T::write(v)
+        T::write8(v_8)
+    } noexcept;
+    {
+        T::write16(v_16)
     } noexcept;
 };
 

@@ -1,10 +1,15 @@
 // define.hpp
 #pragma once
+#include "empp_config.h"
 
-#if defined(__GNUC__) || defined(__clang__)
-    #define EMPP_ALWAYS_INLINE __attribute__((always_inline)) inline
+#if EMPP_DEBUG_ONESTEP
+    #define EMPP_ALWAYS_INLINE
 #else
-    #define EMPP_ALWAYS_INLINE inline
+    #if defined(__GNUC__) || defined(__clang__)
+        #define EMPP_ALWAYS_INLINE __attribute__((always_inline)) inline
+    #else
+        #define EMPP_ALWAYS_INLINE inline
+    #endif
 #endif
 
 #if defined(__GNUC__) || defined(__clang__)

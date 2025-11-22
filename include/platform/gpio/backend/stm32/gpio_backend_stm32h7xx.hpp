@@ -16,12 +16,12 @@ namespace empp::stm32h7xx::gpio {
  * 详情可以参考 STM32H7
  * 开启IO补偿单元和关闭补偿单元，GPIO配置不同速度等级的最高速度
  */
-EMPP_ALWAYS_INLINE static void enable_speed_optimization() noexcept
+__used EMPP_ALWAYS_INLINE static void enable_speed_optimization() noexcept
 {
     SYSCFG->CCCSR |= SYSCFG_CCCSR_HSLV;
 }
 
-EMPP_ALWAYS_INLINE static void disable_speed_optimization() noexcept
+__used EMPP_ALWAYS_INLINE static void disable_speed_optimization() noexcept
 {
     SYSCFG->CCCSR &= ~SYSCFG_CCCSR_HSLV;
 }
