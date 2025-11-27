@@ -29,7 +29,10 @@ __used EMPP_ALWAYS_INLINE static void disable_speed_optimization() noexcept
 template <platform::gpio::PinId ID>
 struct GpioBackend
 {
-
+    static_assert(ID.port <= 7u,
+                  "Invalid GPIO port: only A(0)~H(7) are supported on STM32H7");
+    static_assert(ID.pin <= 15u,
+                  "Invalid GPIO pin: only pin 0~15 are valid for STM32H7");
     static constexpr uint32_t MASK       = (1u << ID.pin);
     static constexpr uint32_t MASK_RESET = (1u << (ID.pin + 16));
 
@@ -51,7 +54,8 @@ struct GpioBackend
             return GPIOG;
         if constexpr (ID.port == 7)
             return GPIOH;
-        return GPIOA;
+
+        __builtin_unreachable();
     }
 
     EMPP_ALWAYS_INLINE static void set() noexcept { regs()->BSRR = MASK; }

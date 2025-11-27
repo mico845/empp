@@ -28,6 +28,11 @@ enum class StreamId : uint8_t {
 template <DMAId Dma, StreamId Strm>
 struct DmaBackend
 {
+    static_assert(Dma == DMAId::Dma1 || Dma == DMAId::Dma2,
+                  "Invalid DMAId for STM32H7 DmaBackend");
+    static_assert(static_cast<uint8_t>(Strm) <= 7u,
+                  "Invalid StreamId for STM32H7 DmaBackend");
+
     EMPP_ALWAYS_INLINE static DMA_TypeDef *dma() noexcept
     {
         if constexpr (Dma == DMAId::Dma1) {
@@ -40,6 +45,7 @@ struct DmaBackend
 
     EMPP_ALWAYS_INLINE static DMA_Stream_TypeDef *stream() noexcept
     {
+
         if constexpr (Dma == DMAId::Dma1) {
             if constexpr (Strm == StreamId::S0)
                 return DMA1_Stream0;
@@ -76,16 +82,18 @@ struct DmaBackend
             if constexpr (Strm == StreamId::S7)
                 return DMA2_Stream7;
         }
-        return DMA1_Stream0;
+
+        __builtin_unreachable();
     }
 
     EMPP_ALWAYS_INLINE static void configAddr(const uint32_t peripheralAddr,
                                               const uint32_t memoryAddr,
                                               const uint32_t length) noexcept
     {
-        stream()->PAR  = peripheralAddr;
-        stream()->M0AR = memoryAddr;
-        stream()->NDTR = length;
+        auto * const s = stream();
+        s->PAR         = peripheralAddr;
+        s->M0AR        = memoryAddr;
+        s->NDTR        = length;
     }
 
     EMPP_ALWAYS_INLINE static void enable() noexcept
@@ -95,7 +103,11 @@ struct DmaBackend
 
     EMPP_ALWAYS_INLINE static void disable() noexcept
     {
-        stream()->CR &= ~DMA_SxCR_EN;
+        auto * const s = stream();
+        s->CR &= ~DMA_SxCR_EN;
+        while ((s->CR & DMA_SxCR_EN) != 0U) {
+            // busy wait, usually only a few cycles
+        }
     }
     EMPP_ALWAYS_INLINE static void enable_irq_tc() noexcept
     {
@@ -108,101 +120,99 @@ struct DmaBackend
 
     EMPP_ALWAYS_INLINE static void clear_all_flags() noexcept
     {
+        auto * const d = dma();
+
         if constexpr (Strm == StreamId::S0) {
-            dma()->LIFCR = DMA_LIFCR_CTCIF0 | DMA_LIFCR_CHTIF0
-                           | DMA_LIFCR_CTEIF0 | DMA_LIFCR_CDMEIF0
-                           | DMA_LIFCR_CFEIF0;
+            d->LIFCR = DMA_LIFCR_CTCIF0 | DMA_LIFCR_CHTIF0 | DMA_LIFCR_CTEIF0
+                       | DMA_LIFCR_CDMEIF0 | DMA_LIFCR_CFEIF0;
         }
         else if constexpr (Strm == StreamId::S1) {
-            dma()->LIFCR = DMA_LIFCR_CTCIF1 | DMA_LIFCR_CHTIF1
-                           | DMA_LIFCR_CTEIF1 | DMA_LIFCR_CDMEIF1
-                           | DMA_LIFCR_CFEIF1;
+            d->LIFCR = DMA_LIFCR_CTCIF1 | DMA_LIFCR_CHTIF1 | DMA_LIFCR_CTEIF1
+                       | DMA_LIFCR_CDMEIF1 | DMA_LIFCR_CFEIF1;
         }
         else if constexpr (Strm == StreamId::S2) {
-            dma()->LIFCR = DMA_LIFCR_CTCIF2 | DMA_LIFCR_CHTIF2
-                           | DMA_LIFCR_CTEIF2 | DMA_LIFCR_CDMEIF2
-                           | DMA_LIFCR_CFEIF2;
+            d->LIFCR = DMA_LIFCR_CTCIF2 | DMA_LIFCR_CHTIF2 | DMA_LIFCR_CTEIF2
+                       | DMA_LIFCR_CDMEIF2 | DMA_LIFCR_CFEIF2;
         }
         else if constexpr (Strm == StreamId::S3) {
-            dma()->LIFCR = DMA_LIFCR_CTCIF3 | DMA_LIFCR_CHTIF3
-                           | DMA_LIFCR_CTEIF3 | DMA_LIFCR_CDMEIF3
-                           | DMA_LIFCR_CFEIF3;
+            d->LIFCR = DMA_LIFCR_CTCIF3 | DMA_LIFCR_CHTIF3 | DMA_LIFCR_CTEIF3
+                       | DMA_LIFCR_CDMEIF3 | DMA_LIFCR_CFEIF3;
         }
         else if constexpr (Strm == StreamId::S4) {
-            dma()->HIFCR = DMA_HIFCR_CTCIF4 | DMA_HIFCR_CHTIF4
-                           | DMA_HIFCR_CTEIF4 | DMA_HIFCR_CDMEIF4
-                           | DMA_HIFCR_CFEIF4;
+            d->HIFCR = DMA_HIFCR_CTCIF4 | DMA_HIFCR_CHTIF4 | DMA_HIFCR_CTEIF4
+                       | DMA_HIFCR_CDMEIF4 | DMA_HIFCR_CFEIF4;
         }
         else if constexpr (Strm == StreamId::S5) {
-            dma()->HIFCR = DMA_HIFCR_CTCIF5 | DMA_HIFCR_CHTIF5
-                           | DMA_HIFCR_CTEIF5 | DMA_HIFCR_CDMEIF5
-                           | DMA_HIFCR_CFEIF5;
+            d->HIFCR = DMA_HIFCR_CTCIF5 | DMA_HIFCR_CHTIF5 | DMA_HIFCR_CTEIF5
+                       | DMA_HIFCR_CDMEIF5 | DMA_HIFCR_CFEIF5;
         }
         else if constexpr (Strm == StreamId::S6) {
-            dma()->HIFCR = DMA_HIFCR_CTCIF6 | DMA_HIFCR_CHTIF6
-                           | DMA_HIFCR_CTEIF6 | DMA_HIFCR_CDMEIF6
-                           | DMA_HIFCR_CFEIF6;
+            d->HIFCR = DMA_HIFCR_CTCIF6 | DMA_HIFCR_CHTIF6 | DMA_HIFCR_CTEIF6
+                       | DMA_HIFCR_CDMEIF6 | DMA_HIFCR_CFEIF6;
         }
         else if constexpr (Strm == StreamId::S7) {
-            dma()->HIFCR = DMA_HIFCR_CTCIF7 | DMA_HIFCR_CHTIF7
-                           | DMA_HIFCR_CTEIF7 | DMA_HIFCR_CDMEIF7
-                           | DMA_HIFCR_CFEIF7;
+            d->HIFCR = DMA_HIFCR_CTCIF7 | DMA_HIFCR_CHTIF7 | DMA_HIFCR_CTEIF7
+                       | DMA_HIFCR_CDMEIF7 | DMA_HIFCR_CFEIF7;
         }
     }
     EMPP_ALWAYS_INLINE static bool is_tc() noexcept
     {
+        auto * const d = dma();
+
         if constexpr (Strm == StreamId::S0) {
-            return (dma()->LISR & DMA_LISR_TCIF0) != 0U;
+            return (d->LISR & DMA_LISR_TCIF0) != 0U;
         }
         else if constexpr (Strm == StreamId::S1) {
-            return (dma()->LISR & DMA_LISR_TCIF1) != 0U;
+            return (d->LISR & DMA_LISR_TCIF1) != 0U;
         }
         else if constexpr (Strm == StreamId::S2) {
-            return (dma()->LISR & DMA_LISR_TCIF2) != 0U;
+            return (d->LISR & DMA_LISR_TCIF2) != 0U;
         }
         else if constexpr (Strm == StreamId::S3) {
-            return (dma()->LISR & DMA_LISR_TCIF3) != 0U;
+            return (d->LISR & DMA_LISR_TCIF3) != 0U;
         }
         else if constexpr (Strm == StreamId::S4) {
-            return (dma()->HISR & DMA_HISR_TCIF4) != 0U;
+            return (d->HISR & DMA_HISR_TCIF4) != 0U;
         }
         else if constexpr (Strm == StreamId::S5) {
-            return (dma()->HISR & DMA_HISR_TCIF5) != 0U;
+            return (d->HISR & DMA_HISR_TCIF5) != 0U;
         }
         else if constexpr (Strm == StreamId::S6) {
-            return (dma()->HISR & DMA_HISR_TCIF6) != 0U;
+            return (d->HISR & DMA_HISR_TCIF6) != 0U;
         }
         else if constexpr (Strm == StreamId::S7) {
-            return (dma()->HISR & DMA_HISR_TCIF7) != 0U;
+            return (d->HISR & DMA_HISR_TCIF7) != 0U;
         }
         return false;
     }
 
     EMPP_ALWAYS_INLINE static void clear_tc() noexcept
     {
+        auto *const d = dma();
+
         if constexpr (Strm == StreamId::S0) {
-            dma()->LIFCR = DMA_LIFCR_CTCIF0;
+            d->LIFCR = DMA_LIFCR_CTCIF0;
         }
         else if constexpr (Strm == StreamId::S1) {
-            dma()->LIFCR = DMA_LIFCR_CTCIF1;
+            d->LIFCR = DMA_LIFCR_CTCIF1;
         }
         else if constexpr (Strm == StreamId::S2) {
-            dma()->LIFCR = DMA_LIFCR_CTCIF2;
+            d->LIFCR = DMA_LIFCR_CTCIF2;
         }
         else if constexpr (Strm == StreamId::S3) {
-            dma()->LIFCR = DMA_LIFCR_CTCIF3;
+            d->LIFCR = DMA_LIFCR_CTCIF3;
         }
         else if constexpr (Strm == StreamId::S4) {
-            dma()->HIFCR = DMA_HIFCR_CTCIF4;
+            d->HIFCR = DMA_HIFCR_CTCIF4;
         }
         else if constexpr (Strm == StreamId::S5) {
-            dma()->HIFCR = DMA_HIFCR_CTCIF5;
+            d->HIFCR = DMA_HIFCR_CTCIF5;
         }
         else if constexpr (Strm == StreamId::S6) {
-            dma()->HIFCR = DMA_HIFCR_CTCIF6;
+            d->HIFCR = DMA_HIFCR_CTCIF6;
         }
         else if constexpr (Strm == StreamId::S7) {
-            dma()->HIFCR = DMA_HIFCR_CTCIF7;
+            d->HIFCR = DMA_HIFCR_CTCIF7;
         }
     }
 };

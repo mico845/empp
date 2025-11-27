@@ -21,7 +21,7 @@ using Impl = platform::delay::DelayImpl<Backend>;
 
 EMPP_ALWAYS_INLINE void init() noexcept { Impl::init(EMPP_SYSCLK_MHZ); }
 
-EMPP_ALWAYS_INLINE void init(const uint32_t sysclk_mhz) noexcept
+EMPP_ALWAYS_INLINE void init(const uint16_t sysclk_mhz) noexcept
 {
     Impl::init(sysclk_mhz);
 }

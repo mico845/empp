@@ -3,9 +3,6 @@
 #include "empp/type.hpp"
 #include "uart_impl.hpp"
 
-#include <cstdio>
-#include <cstring>
-
 namespace empp::platform::uart {
 
 template <UartBackend Backend>
@@ -21,24 +18,55 @@ public:
 
     EMPP_ALWAYS_INLINE static void print(const char *s) noexcept
     {
-        for (size_t i = 0; s[i] != '\0'; ++i) {
-            Impl::write(static_cast<uint8_t>(s[i]));
+        if (s == nullptr)
+            return;
+        for (const char *p = s; *p != '\0'; ++p) {
+            Impl::write(static_cast<uint8_t>(*p));
         }
     }
 
     EMPP_ALWAYS_INLINE static void print(const uint8_t *buf,
                                          const size_t   len) noexcept
     {
-        for (size_t i = 0; i < len; ++i) {
-            Impl::write(buf[i]);
+        if (buf == nullptr)
+            return;
+
+        const uint8_t *p   = buf;
+        const uint8_t *end = buf + len;
+
+        while (p < end) {
+            Impl::write(*p++);
         }
     }
 
     EMPP_ALWAYS_INLINE static void print(const int value) noexcept
     {
-        char buf[16];
-        snprintf(buf, sizeof(buf), "%d", value);
-        print(buf);
+        char     buf[12]; // 足够容纳 int32: "-2147483648\0"
+        char    *p   = buf + sizeof(buf);
+        *--p        = '\0';
+
+        const bool     negative = (value < 0); // 将有符号数安全地转换为无符号再取绝对值，避免 UB
+        auto u = static_cast<uint32_t>(value);
+        if (negative) {
+            u = 0u - u; // 二补码下等价于 abs(value)
+        }
+
+        // 处理 0
+        if (u == 0u) {
+            *--p = '0';
+        } else {
+            while (u != 0u) {
+                const uint32_t digit = u % 10u;
+                u /= 10u;
+                *--p = static_cast<char>('0' + digit);
+            }
+        }
+
+        if (negative) {
+            *--p = '-';
+        }
+
+        print(p);
     }
 
     template <typename... Args>

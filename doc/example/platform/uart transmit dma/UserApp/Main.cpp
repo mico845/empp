@@ -14,7 +14,7 @@ void Main()
         uart_data[i] = str[i];
 
     Com1::enable_dma_tx();
-    Com1::config_dma_tx(reinterpret_cast<uint32_t>(uart_data), uart_index);
+    Com1::config_dma_tx(uart_data, uart_index);
     Com1::enable_irq_dma_tx_tc();
     Com1::start_dma_tx();
 

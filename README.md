@@ -20,7 +20,7 @@ EMPP（Embedded Platform with C++） 是一款基于 STM32 的轻量级、追求
 |----------|-------------------------|------|
 | `gpio`   | ✅                       | ?    |
 | `delay`  | ✅                       | ?    |
-| `uart`   | ING...                  | ?    |
+| `uart`   | ✅                       | ?    |
 | `dma`    | ✅                       | ?    |
 | `spi`    | ING...                  | ?    |
 | `iic`    | 计划中                     | ?    |
@@ -147,6 +147,10 @@ void USART1_IRQHandler()
 DMA 发送 `"hello world!\r\n"`
 
 ```c++
+using Uart1TxDma = dma::Dma2S7;
+using Com1       = uart::UartDma<1, Uart1TxDma, void>;
+using Led  = gpio::PC13;
+
 constexpr uint8_t      uart_index = 20;
 EMPP_RAM_SRAM1 uint8_t uart_data[uart_index];
 
@@ -225,6 +229,48 @@ void USART1_IRQHandler()
 {
     if (Com1::is_rc()) {
         callback_rx();
+    }
+}
+```
+
+DMA 接收定长数据
+
+```c++
+using Uart1RxDma = dma::Dma2S6;
+using Com1       = uart::UartDma<1, void, Uart1RxDma>;
+using Led  = gpio::PC13;
+
+constexpr uint8_t      uart_index = 6;
+EMPP_RAM_SRAM1 uint8_t uart_data[uart_index];
+
+EMPP_RAM_ITCM void Main()
+{
+    Com1::enable_dma_rx();
+    Com1::config_dma_rx(uart_data, uart_index);
+    Com1::enable_irq_dma_rx_tc();
+    Com1::start_dma_rx();
+
+    while (true) {
+        if (uart_flag) {
+            Com1::stop_dma_rx();
+            uart_flag = false;
+
+            Led::toggle();
+            for (const auto i : uart_data)
+                Com1::write(i);
+            delay::s(1);
+
+            Com1::start_dma_rx();
+        }
+    }
+}
+
+void DMA2_Stream6_IRQHandler()
+{
+    if (Uart1RxDma::is_tc()) {
+        uart_flag = true;
+        SCB_InvalidateDCache();
+        Uart1RxDma::clear_tc();
     }
 }
 ```

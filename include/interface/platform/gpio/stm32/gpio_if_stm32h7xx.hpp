@@ -17,7 +17,7 @@ constexpr uint8_t PORT_E = 4;
 
 template <uint8_t Port, uint8_t Pin>
 using Gpio =
-    platform::gpio::GpioImpl<GpioBackend<platform::gpio::PinId(Port, Pin)>>;
+    platform::gpio::GpioImpl<GpioBackend<platform::gpio::PinId{Port, Pin}>>;
 
 /* -----------------------------
  * GPIOA  (A0 - A15)

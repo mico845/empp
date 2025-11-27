@@ -30,7 +30,15 @@ struct SysTickBackend
 
     EMPP_ALWAYS_INLINE static void us(const uint32_t nUs) noexcept
     {
-        const uint32_t ticks = nUs * delay_state::ticks_per_us;
+        if (nUs == 0u || delay_state::ticks_per_us == 0u) {
+            return;
+        }
+
+        const uint64_t raw_ticks =
+            static_cast<uint64_t>(nUs) * delay_state::ticks_per_us;
+
+        auto ticks = static_cast<uint32_t>(raw_ticks > 0x00FFFFFFu ? 0x00FFFFFFu
+                                                                   : raw_ticks);
 
         SysTick->LOAD = ticks;           // 加载倒计时时间
         SysTick->VAL  = 0;               // 清空当前计数
