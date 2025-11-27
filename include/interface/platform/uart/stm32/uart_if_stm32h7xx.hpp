@@ -16,6 +16,9 @@ using Uart = platform::uart::UartIO<UARTBackend<UartId>>;
 template <uint8_t UartId>
 using UartBase = platform::uart::UartImpl<UARTBackend<UartId>>;
 
+template <uint8_t UartId, typename DmaTx, typename DmaRx>
+using UartDma = platform::uart::UartImpl<UARTBackend<UartId, DmaTx, DmaRx>>;
+
 using U1 = Uart<1>;
 using U2 = Uart<2>;
 using U3 = Uart<3>;

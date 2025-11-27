@@ -1,7 +1,6 @@
 // uart_impl.hpp
 #pragma once
 #include "platform/uart/uart_concept.hpp"
-#include "platform/uart/uart_dispatcher.hpp"
 
 namespace empp::platform::uart {
 
@@ -18,14 +17,14 @@ struct UartImpl
         return Backend::read();
     }
 
-    EMPP_ALWAYS_INLINE static void enable_tx_irq() noexcept
+    EMPP_ALWAYS_INLINE static void enable_irq_tx() noexcept
     {
-        Backend::enable_tx_irq();
+        Backend::enable_irq_tx();
     }
 
-    EMPP_ALWAYS_INLINE static void disable_tx_irq() noexcept
+    EMPP_ALWAYS_INLINE static void disable_irq_tx() noexcept
     {
-        Backend::disable_tx_irq();
+        Backend::disable_irq_tx();
     }
 
     EMPP_ALWAYS_INLINE static void
@@ -34,14 +33,14 @@ struct UartImpl
         Backend::register_callback_tx(cb);
     }
 
-    EMPP_ALWAYS_INLINE static void enable_rx_irq() noexcept
+    EMPP_ALWAYS_INLINE static void enable_irq_rx() noexcept
     {
-        Backend::enable_rx_irq();
+        Backend::enable_irq_rx();
     }
 
-    EMPP_ALWAYS_INLINE static void disable_rx_irq() noexcept
+    EMPP_ALWAYS_INLINE static void disable_irq_rx() noexcept
     {
-        Backend::disable_rx_irq();
+        Backend::disable_irq_rx();
     }
 
     EMPP_ALWAYS_INLINE static void
@@ -53,6 +52,52 @@ struct UartImpl
     EMPP_ALWAYS_INLINE static void handle_irq() noexcept
     {
         Backend::handle_irq();
+    }
+
+    /* DMA */
+    EMPP_ALWAYS_INLINE static void enable_irq_tc() noexcept
+    {
+        Backend::enable_irq_tc();
+    }
+    EMPP_ALWAYS_INLINE static void disable_irq_tc() noexcept
+    {
+        Backend::disable_irq_tc();
+    }
+
+    EMPP_ALWAYS_INLINE static void enable_dma_tx() noexcept
+    {
+        Backend::enable_dma_tx();
+    }
+
+    EMPP_ALWAYS_INLINE static void disable_dma_tx() noexcept
+    {
+        Backend::disable_dma_tx();
+    }
+
+    EMPP_ALWAYS_INLINE static void enable_irq_dma_tx_tc() noexcept
+    {
+        Backend::enable_irq_dma_tx_tc();
+    }
+
+    EMPP_ALWAYS_INLINE static void disable_irq_dma_tx_tc() noexcept
+    {
+        Backend::disable_irq_dma_tx_tc();
+    }
+
+    EMPP_ALWAYS_INLINE static void config_dma_tx(const uint32_t buffer,
+                                                 const uint32_t length) noexcept
+    {
+        Backend::config_dma_tx(buffer, length);
+    }
+
+    EMPP_ALWAYS_INLINE static void start_dma_tx() noexcept
+    {
+        Backend::start_dma_tx();
+    }
+
+    EMPP_ALWAYS_INLINE static void stop_dma_tx() noexcept
+    {
+        Backend::stop_dma_tx();
     }
 };
 } // namespace empp::platform::uart

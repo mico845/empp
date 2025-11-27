@@ -45,10 +45,14 @@
          */
         #define EMPP_RAM_SRAM4 __attribute__((section(".sram4")))
 
-        /*
-         * ITCM 指令加速 （在移植时请参考 ld 脚本和 startup_*.s 启动汇编）
-         */
-        #define EMPP_RAM_ITCM __attribute__((section(".itcm")))
+    /*
+     * ITCM 指令加速 （在移植时请参考 ld 脚本和 startup_*.s 启动汇编）
+     */
+        #if EMPP_DEBUG_ONESTEP
+            #define EMPP_RAM_ITCM
+        #else
+            #define EMPP_RAM_ITCM __attribute__((section(".itcm")))
+        #endif
     #else
 
     #endif
