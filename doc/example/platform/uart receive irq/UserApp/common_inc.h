@@ -13,7 +13,8 @@ extern "C" {
 
 /*---------------------------- C++ Scope ---------------------------*/
 
-    #include <empp.h>
-using namespace empp::stm32h7xx;
+    #include "board.hpp"
+
+inline volatile uint8_t ch = 0;
 
 #endif

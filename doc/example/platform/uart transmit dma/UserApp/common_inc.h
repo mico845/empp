@@ -12,5 +12,6 @@ extern "C" {
 }
 
 /*---------------------------- C++ Scope ---------------------------*/
+inline volatile bool uart_flag = false;
 
 #endif

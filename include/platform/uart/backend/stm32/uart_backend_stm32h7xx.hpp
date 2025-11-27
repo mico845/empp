@@ -5,11 +5,8 @@
 #if defined(EMPP_CHIP_STM32H7)
     #include "empp/driver.hpp"
     #include "empp/type.hpp"
-    #include "platform/uart/uart_dispatcher.hpp"
 
 namespace empp::stm32h7xx::uart {
-
-using Irq = platform::uart::UartDispatcher;
 
 template <uint8_t UartId, typename DmaTx = void, typename DmaRx = void>
 struct UARTBackend
@@ -56,13 +53,6 @@ struct UARTBackend
     {
         regs()->CR1 &= ~USART_CR1_TXEIE;
     }
-
-    EMPP_ALWAYS_INLINE static void
-    register_callback_tx(const Callback cb) noexcept
-    {
-        Irq::register_callback_tx(UartId, cb);
-    }
-
     EMPP_ALWAYS_INLINE static void enable_irq_rx() noexcept
     {
         regs()->CR1 |= USART_CR1_RXNEIE;
@@ -73,21 +63,14 @@ struct UARTBackend
         regs()->CR1 &= ~USART_CR1_RXNEIE;
     }
 
-    EMPP_ALWAYS_INLINE static void
-    register_callback_rx(const Callback cb) noexcept
+    EMPP_ALWAYS_INLINE static bool is_tc() noexcept
     {
-        Irq::register_callback_rx(UartId, cb);
+        return (regs()->ISR & USART_ISR_TXE_TXFNF) != 0U;
     }
 
-    EMPP_ALWAYS_INLINE static void handle_irq() noexcept
+    EMPP_ALWAYS_INLINE static bool is_rc() noexcept
     {
-        if (regs()->ISR & USART_ISR_TXE_TXFNF) {
-            Irq::dispatch_tx(UartId);
-        }
-
-        if (regs()->ISR & USART_ISR_RXNE_RXFNE) {
-            Irq::dispatch_rx(UartId);
-        }
+        return (regs()->ISR & USART_ISR_RXNE_RXFNE) != 0U;
     }
 
     EMPP_ALWAYS_INLINE static void enable_dma_rx() noexcept
@@ -149,7 +132,7 @@ struct UARTBackend
     }
 
     /*
-     * 每次发生 TXE（使能 FIFO模式时为TXFNF）事件后，
+     * 每次发生 TXE（使能 FIFO模式时为 TXFNF ）事件后，
      * 数据都从存储器移动到 USART_TDR。
      */
     EMPP_ALWAYS_INLINE static void start_dma_tx() noexcept

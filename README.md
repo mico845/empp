@@ -16,17 +16,21 @@ EMPP（Embedded Platform with C++） 是一款基于 STM32 的轻量级、追求
 
 ### 外设驱动
 
-| Platform | H7xx (Test on H750VBT6) | G4xx |
+| platform | H7xx (Test on H750VBT6) | G4xx |
 |----------|-------------------------|------|
 | `gpio`   | ✅                       | ?    |
 | `delay`  | ✅                       | ?    |
 | `uart`   | ING...                  | ?    |
+| `dma`    | ✅                       | ?    |
+| `spi`    | ING...                  | ?    |
+| `iic`    | 计划中                     | ?    |
 
 ### 器件驱动
 
-| Components  | 说明               | 完成情况 |
-|-------------|------------------|------|
-| `rgb_3gpio` | RGB灯（使用三个GPIO控制） | ✅    |
+| components  | 说明               | 完成情况   |
+|-------------|------------------|--------|
+| `rgb_3gpio` | RGB灯（使用三个GPIO控制） | ✅      |
+| `st7789vw`  | TFT-LCD屏幕驱动（SPI） | ING... |
 
 ---
 
@@ -57,13 +61,14 @@ EMPP（Embedded Platform with C++） 是一款基于 STM32 的轻量级、追求
     )
     
     # Platform 依赖 STM32CubeMX 生成的 HAL/LL 头文件
-   target_link_libraries(empp_platform PUBLIC stm32cubemx)
+   target_link_libraries(empp_platform INTERFACE stm32cubemx)
     ```
 
 4. 引用 EMPP
     ```c++
-    #include <empp.hpp>
-    using namespace empp::stm32h7xx;
+    #include "empp.h"
+    using namespace empp::stm32h7xx;    // 使用 EMPP 的 platform 型号
+    using namespace empp::components;   // 使用 EMPP 的 硬件驱动库
     ```
 
 ---
@@ -109,27 +114,72 @@ void Main()
 ```c++
 using Com1 = uart::U1;
 
+void Main()
+{
+    Com1::enable_irq_tx();
+
+    while (true) {
+    }
+}
+
 constexpr uint8_t str[]   = "hello\r\n";
 constexpr uint8_t str_len = sizeof(str) - 1;
 
-void callback_tx()
+static void callback_tx()
 {
     static uint8_t tx_byte_nums = 0;
     if (tx_byte_nums < str_len) {
         Com1::write(str[tx_byte_nums++]);
     }
     else {
-        Com1::disable_tx_irq();
+        Com1::disable_irq_tx();
     }
 }
 
+void USART1_IRQHandler()
+{
+    if (Com1::is_tc()) {
+        callback_tx();
+    }
+}
+```
+
+DMA 发送 `"hello world!\r\n"`
+
+```c++
+constexpr uint8_t      uart_index = 20;
+EMPP_RAM_SRAM1 uint8_t uart_data[uart_index];
+
 void Main()
 {
+    delay::init();
+    constexpr char str[uart_index] = "hello world!\r\n";
+    for (size_t i = 0; i < uart_index; i++)
+        uart_data[i] = str[i];
 
-    Com1::register_callback_tx(callback_tx);
-    Com1::enable_tx_irq();
+    Com1::enable_dma_tx();
+    Com1::config_dma_tx(reinterpret_cast<uint32_t>(uart_data), uart_index);
+    Com1::enable_irq_dma_tx_tc();
+    Com1::start_dma_tx();
 
     while (true) {
+        if (uart_flag) {
+            Com1::stop_dma_tx();
+
+            uart_flag = false;
+
+            Led::toggle();
+            delay::s(1);
+            Com1::start_dma_tx();
+        }
+    }
+}
+
+void DMA2_Stream7_IRQHandler()
+{
+    if (Uart1TxDma::is_tc()) {
+        uart_flag = true;
+        Uart1TxDma::clear_tc();
     }
 }
 ```
@@ -155,20 +205,26 @@ void Main()
 ```c++
 using Com1 = uart::U1;
 using Led  = gpio::PC13;
-static volatile uint8_t ch;
 
-void callback_rx() { ch = Com1::read(); }
 
 void Main()
 {
-    Com1::register_callback_rx(callback_rx);
-    Com1::enable_rx_irq();
+    Com1::enable_irq_rx();
 
     while (true) {
         if (ch == 't') {
             Led::toggle();
             ch = 0;
         }
+    }
+}
+
+static void callback_rx() { ch = Com1::read(); }
+
+void USART1_IRQHandler()
+{
+    if (Com1::is_rc()) {
+        callback_rx();
     }
 }
 ```
@@ -181,7 +237,6 @@ void Main()
 empp_pjt/                        
 ├─ empp/	         # EMPP 库
 │ ├─ include/
-│ ├─ src/
 │ └─ CMakeLists.txt
 ├─ stm32cubemx/      # CubeMX 生成
 ├─ cmake/            # CubeMX 生成
@@ -189,7 +244,9 @@ empp_pjt/
 ├─ Drivers/          # CubeMX 生成
 └─ UserApp/          # 用户程序
    ├─ common_inc.h   # C 和 C++ 混合
-   ├─ Main.cpp           
+   ├─ Main.cpp       # CubeMX 生成的初始化代码之后跳转的 C++ 接口 Main() 
+   ├─ Irq.cpp        # 中断服务函数
+   ├─ board.hpp      # 针对 BSP 级进行命名空间划分          
    └─ CMakeLists.txt
 ```
 

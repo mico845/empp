@@ -19,6 +19,12 @@ concept DmaBackend = requires(uint32_t addr1, uint32_t addr2, uint32_t length) {
     {
         T::clear_all_flags()
     } noexcept;
+    {
+        T::clear_tc()
+    } noexcept;
+    {
+        T::is_tc()
+    } noexcept -> std::same_as<bool>;
 };
 
 } // namespace empp::platform::dma

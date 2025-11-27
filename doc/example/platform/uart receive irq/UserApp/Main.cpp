@@ -1,15 +1,10 @@
 #include "common_inc.h"
 
-using Com1 = uart::U1;
-using Led  = gpio::PC13;
-static volatile uint8_t ch;
+using namespace board;
 
-void callback_rx() { ch = Com1::read(); }
-
-void Main()
+EMPP_RAM_ITCM void Main()
 {
-    Com1::register_callback_rx(callback_rx);
-    Com1::enable_rx_irq();
+    Com1::enable_irq_rx();
 
     while (true) {
         if (ch == 't') {

@@ -7,6 +7,8 @@ namespace empp::platform::uart {
 template <UartBackend Backend>
 struct UartImpl
 {
+
+    /* OP */
     EMPP_ALWAYS_INLINE static void write(const uint8_t value) noexcept
     {
         Backend::write(value);
@@ -17,6 +19,11 @@ struct UartImpl
         return Backend::read();
     }
 
+    /* IRQ */
+    EMPP_ALWAYS_INLINE static bool is_tc() noexcept { return Backend::is_tc(); }
+
+    EMPP_ALWAYS_INLINE static bool is_rc() noexcept { return Backend::is_rc(); }
+
     EMPP_ALWAYS_INLINE static void enable_irq_tx() noexcept
     {
         Backend::enable_irq_tx();
@@ -25,12 +32,6 @@ struct UartImpl
     EMPP_ALWAYS_INLINE static void disable_irq_tx() noexcept
     {
         Backend::disable_irq_tx();
-    }
-
-    EMPP_ALWAYS_INLINE static void
-    register_callback_tx(const Callback cb) noexcept
-    {
-        Backend::register_callback_tx(cb);
     }
 
     EMPP_ALWAYS_INLINE static void enable_irq_rx() noexcept
@@ -43,27 +44,7 @@ struct UartImpl
         Backend::disable_irq_rx();
     }
 
-    EMPP_ALWAYS_INLINE static void
-    register_callback_rx(const Callback cb) noexcept
-    {
-        Backend::register_callback_rx(cb);
-    }
-
-    EMPP_ALWAYS_INLINE static void handle_irq() noexcept
-    {
-        Backend::handle_irq();
-    }
-
     /* DMA */
-    EMPP_ALWAYS_INLINE static void enable_irq_tc() noexcept
-    {
-        Backend::enable_irq_tc();
-    }
-    EMPP_ALWAYS_INLINE static void disable_irq_tc() noexcept
-    {
-        Backend::disable_irq_tc();
-    }
-
     EMPP_ALWAYS_INLINE static void enable_dma_tx() noexcept
     {
         Backend::enable_dma_tx();

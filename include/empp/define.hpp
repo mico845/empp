@@ -3,7 +3,7 @@
 #include "empp_config.h"
 
 #if EMPP_DEBUG_ONESTEP
-    #define EMPP_ALWAYS_INLINE
+    #define EMPP_ALWAYS_INLINE inline
 #else
     #if defined(__GNUC__) || defined(__clang__)
         #define EMPP_ALWAYS_INLINE __attribute__((always_inline)) inline

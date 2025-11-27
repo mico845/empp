@@ -22,6 +22,11 @@ struct DmaImpl
     {
         Backend::clear_all_flags();
     }
+
+    EMPP_ALWAYS_INLINE static void clear_tc() noexcept { Backend::clear_tc(); }
+
+    EMPP_ALWAYS_INLINE static bool is_tc() noexcept { return Backend::is_tc(); }
+
     EMPP_ALWAYS_INLINE static void enable_irq_tc() noexcept
     {
         Backend::enable_irq_tc();

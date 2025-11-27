@@ -48,11 +48,6 @@ public:
         print("\r\n");
     }
 
-    EMPP_ALWAYS_INLINE static void on_tx(Callback cb) noexcept
-    {
-        Impl::register_callback_tx(cb);
-    }
-
 private:
     // 多参数输出
     template <typename T>

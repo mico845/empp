@@ -7,11 +7,6 @@
 extern "C" {
 #endif
 /*---------------------------- C Scope ---------------------------*/
-#if EMPP_CHIP_STM32H7
-    #include "interface/platform/uart/stm32/uart_irq_dispatcher_stm32h7xx.h"
-#else
-
-#endif
 
 #ifdef __cplusplus
 }

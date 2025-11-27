@@ -149,6 +149,62 @@ struct DmaBackend
                            | DMA_HIFCR_CFEIF7;
         }
     }
+    EMPP_ALWAYS_INLINE static bool is_tc() noexcept
+    {
+        if constexpr (Strm == StreamId::S0) {
+            return (dma()->LISR & DMA_LISR_TCIF0) != 0U;
+        }
+        else if constexpr (Strm == StreamId::S1) {
+            return (dma()->LISR & DMA_LISR_TCIF1) != 0U;
+        }
+        else if constexpr (Strm == StreamId::S2) {
+            return (dma()->LISR & DMA_LISR_TCIF2) != 0U;
+        }
+        else if constexpr (Strm == StreamId::S3) {
+            return (dma()->LISR & DMA_LISR_TCIF3) != 0U;
+        }
+        else if constexpr (Strm == StreamId::S4) {
+            return (dma()->HISR & DMA_HISR_TCIF4) != 0U;
+        }
+        else if constexpr (Strm == StreamId::S5) {
+            return (dma()->HISR & DMA_HISR_TCIF5) != 0U;
+        }
+        else if constexpr (Strm == StreamId::S6) {
+            return (dma()->HISR & DMA_HISR_TCIF6) != 0U;
+        }
+        else if constexpr (Strm == StreamId::S7) {
+            return (dma()->HISR & DMA_HISR_TCIF7) != 0U;
+        }
+        return false;
+    }
+
+    EMPP_ALWAYS_INLINE static void clear_tc() noexcept
+    {
+        if constexpr (Strm == StreamId::S0) {
+            dma()->LIFCR = DMA_LIFCR_CTCIF0;
+        }
+        else if constexpr (Strm == StreamId::S1) {
+            dma()->LIFCR = DMA_LIFCR_CTCIF1;
+        }
+        else if constexpr (Strm == StreamId::S2) {
+            dma()->LIFCR = DMA_LIFCR_CTCIF2;
+        }
+        else if constexpr (Strm == StreamId::S3) {
+            dma()->LIFCR = DMA_LIFCR_CTCIF3;
+        }
+        else if constexpr (Strm == StreamId::S4) {
+            dma()->HIFCR = DMA_HIFCR_CTCIF4;
+        }
+        else if constexpr (Strm == StreamId::S5) {
+            dma()->HIFCR = DMA_HIFCR_CTCIF5;
+        }
+        else if constexpr (Strm == StreamId::S6) {
+            dma()->HIFCR = DMA_HIFCR_CTCIF6;
+        }
+        else if constexpr (Strm == StreamId::S7) {
+            dma()->HIFCR = DMA_HIFCR_CTCIF7;
+        }
+    }
 };
 
 } // namespace empp::stm32h7xx::dma
