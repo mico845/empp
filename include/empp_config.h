@@ -14,5 +14,5 @@
 // 是否使用 EMPP 内置的 Component 驱动
 #define EMPP_COMPONENTS_ON 1
 
-// DEBUG
+// DEBUG 关闭所有内联 进行单步调试
 #define EMPP_DEBUG_ONESTEP 1

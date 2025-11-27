@@ -3,10 +3,8 @@
 #include "empp_config.h"
 
 #if defined(EMPP_CHIP_STM32H7)
-    #include "spi.h"
     #include "empp/driver.hpp"
     #include "empp/type.hpp"
-    #include "stm32h7xx_ll_spi.h"
 
 namespace empp::stm32h7xx::spi {
 
