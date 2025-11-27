@@ -44,6 +44,11 @@
          * 位于D3域，数据带宽是32bit，挂在AHB总线上，大部分主控都能访这块SRAM区。
          */
         #define EMPP_RAM_SRAM4 __attribute__((section(".sram4")))
+
+        /*
+         * ITCM 指令加速 （在移植时请参考 ld 脚本和 startup_*.s 启动汇编）
+         */
+        #define EMPP_RAM_ITCM __attribute__((section(".itcm")))
     #else
 
     #endif
