@@ -6,7 +6,7 @@
 namespace empp::platform::dma {
 
 template <typename T>
-concept DmaBackend = requires(uint32_t addr1, uint32_t addr2, uint32_t length) {
+concept DmaBackend = requires(uint32_t addr1, uint32_t addr2, uint16_t length) {
     {
         T::configAddr(addr1, addr2, length)
     } noexcept;
@@ -26,11 +26,25 @@ concept DmaBackend = requires(uint32_t addr1, uint32_t addr2, uint32_t length) {
         T::is_tc()
     } noexcept -> std::same_as<bool>;
     {
+        T::clear_ht()
+    } noexcept;
+    {
+        T::is_ht()
+    } noexcept -> std::same_as<bool>;
+    {
         T::enable_irq_tc()
     } noexcept;
     {
         T::disable_irq_tc()
     } noexcept;
+    {
+        T::enable_irq_ht()
+    } noexcept;
+    {
+        T::disable_irq_ht()
+    } noexcept;
+    {
+        T::get_length()
+    } noexcept -> std::same_as<uint16_t>;
 };
-
 } // namespace empp::platform::dma

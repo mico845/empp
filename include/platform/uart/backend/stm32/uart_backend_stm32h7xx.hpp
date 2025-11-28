@@ -65,6 +65,7 @@ struct UARTBackend
     {
         regs()->CR1 &= ~USART_CR1_TXEIE;
     }
+
     EMPP_ALWAYS_INLINE static void enable_irq_rx() noexcept
     {
         regs()->CR1 |= USART_CR1_RXNEIE;
@@ -73,6 +74,16 @@ struct UARTBackend
     EMPP_ALWAYS_INLINE static void disable_irq_rx() noexcept
     {
         regs()->CR1 &= ~USART_CR1_RXNEIE;
+    }
+
+    EMPP_ALWAYS_INLINE static void enable_irq_idle() noexcept
+    {
+        regs()->CR1 |= USART_CR1_IDLEIE;
+    }
+
+    EMPP_ALWAYS_INLINE static void disable_irq_idle() noexcept
+    {
+        regs()->CR1 &= ~USART_CR1_IDLEIE;
     }
 
     EMPP_ALWAYS_INLINE static bool is_tc() noexcept
@@ -86,6 +97,21 @@ struct UARTBackend
     {
         // *** NOTE: 这里判断的是 RXNE/RXFNE（有数据可读） ***
         return (regs()->ISR & USART_ISR_RXNE_RXFNE) != 0U;
+    }
+
+    EMPP_ALWAYS_INLINE static bool is_idle() noexcept
+    {
+        return (regs()->ISR & USART_ISR_IDLE) != 0U;
+    }
+
+    EMPP_ALWAYS_INLINE static void clear_tc() noexcept
+    {
+        regs()->ICR = USART_ICR_TXFECF;
+    }
+
+    EMPP_ALWAYS_INLINE static void clear_idle() noexcept
+    {
+        regs()->ICR = USART_ICR_IDLECF;
     }
 
     EMPP_ALWAYS_INLINE static void enable_dma_tx() noexcept
@@ -152,8 +178,30 @@ struct UARTBackend
         }
     }
 
+    EMPP_ALWAYS_INLINE static void enable_irq_dma_rx_ht() noexcept
+    {
+        if constexpr (!std::is_same_v<DmaRx, void>) {
+            DmaRx::enable_irq_ht();
+        }
+        else {
+            static_assert(!std::is_same_v<DmaRx, void>,
+                          "This UART backend has no Rx DMA configured");
+        }
+    }
+
+    EMPP_ALWAYS_INLINE static void disable_irq_dma_rx_ht() noexcept
+    {
+        if constexpr (!std::is_same_v<DmaRx, void>) {
+            DmaRx::disable_irq_ht();
+        }
+        else {
+            static_assert(!std::is_same_v<DmaRx, void>,
+                          "This UART backend has no Rx DMA configured");
+        }
+    }
+
     EMPP_ALWAYS_INLINE static void config_dma_tx(const void    *buffer,
-                                                 const uint32_t length) noexcept
+                                                 const uint16_t length) noexcept
     {
         if constexpr (!std::is_same_v<DmaTx, void>) {
             DmaTx::disable();
@@ -169,7 +217,7 @@ struct UARTBackend
     }
 
     EMPP_ALWAYS_INLINE static void config_dma_rx(const void    *buffer,
-                                                 const uint32_t length) noexcept
+                                                 const uint16_t length) noexcept
     {
         if constexpr (!std::is_same_v<DmaRx, void>) {
             DmaRx::disable();

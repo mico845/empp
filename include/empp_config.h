@@ -15,4 +15,6 @@
 #define EMPP_COMPONENTS_ON 1
 
 // DEBUG 关闭所有内联 进行单步调试
-#define EMPP_DEBUG_ONESTEP 0
+#if !defined(EMPP_DEBUG_ONESTEP)
+#define EMPP_DEBUG_ONESTEP 1
+#endif

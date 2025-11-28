@@ -88,12 +88,27 @@ struct DmaBackend
 
     EMPP_ALWAYS_INLINE static void configAddr(const uint32_t peripheralAddr,
                                               const uint32_t memoryAddr,
-                                              const uint32_t length) noexcept
+                                              const uint16_t length) noexcept
     {
         auto * const s = stream();
         s->PAR         = peripheralAddr;
         s->M0AR        = memoryAddr;
-        s->NDTR        = length;
+        /*
+         *  NDTR
+         *  要传输的数据项数目（0 到65535）。
+
+            只有在禁止数据流时，才能向此寄存器执行写操作。
+            使能数据流后，此寄存器为只读，用于指示要传输的剩余数据项数。
+            每次 DMA 传输后，此 寄存器将递减。
+
+            传输完成后，此寄存器保持为零（数据流处于正常模式时），
+            或者在以下情况下自动以先前编程的值重载：
+            1. 以循环模式配置数据流时
+            2. 通过将 EN 位置“1”来重新使能数据流时
+
+            如果该寄存器的值为零，则即使使能数据流，也无法完成任何事务。
+         */
+        s->NDTR = length;
     }
 
     EMPP_ALWAYS_INLINE static void enable() noexcept
@@ -109,13 +124,25 @@ struct DmaBackend
             // busy wait, usually only a few cycles
         }
     }
+
     EMPP_ALWAYS_INLINE static void enable_irq_tc() noexcept
     {
         stream()->CR |= DMA_SxCR_TCIE;
     }
+
     EMPP_ALWAYS_INLINE static void disable_irq_tc() noexcept
     {
         stream()->CR &= ~DMA_SxCR_TCIE;
+    }
+
+    EMPP_ALWAYS_INLINE static void enable_irq_ht() noexcept
+    {
+        stream()->CR |= DMA_SxCR_HTIE;
+    }
+
+    EMPP_ALWAYS_INLINE static void disable_irq_ht() noexcept
+    {
+        stream()->CR &= ~DMA_SxCR_HTIE;
     }
 
     EMPP_ALWAYS_INLINE static void clear_all_flags() noexcept
@@ -155,6 +182,7 @@ struct DmaBackend
                        | DMA_HIFCR_CDMEIF7 | DMA_HIFCR_CFEIF7;
         }
     }
+
     EMPP_ALWAYS_INLINE static bool is_tc() noexcept
     {
         auto * const d = dma();
@@ -188,7 +216,7 @@ struct DmaBackend
 
     EMPP_ALWAYS_INLINE static void clear_tc() noexcept
     {
-        auto *const d = dma();
+        auto * const d = dma();
 
         if constexpr (Strm == StreamId::S0) {
             d->LIFCR = DMA_LIFCR_CTCIF0;
@@ -214,6 +242,71 @@ struct DmaBackend
         else if constexpr (Strm == StreamId::S7) {
             d->HIFCR = DMA_HIFCR_CTCIF7;
         }
+    }
+    EMPP_ALWAYS_INLINE static bool is_ht() noexcept
+    {
+        const auto * const d = dma();
+
+        if constexpr (Strm == StreamId::S0) {
+            return (d->LISR & DMA_LISR_HTIF0) != 0U;
+        }
+        else if constexpr (Strm == StreamId::S1) {
+            return (d->LISR & DMA_LISR_HTIF1) != 0U;
+        }
+        else if constexpr (Strm == StreamId::S2) {
+            return (d->LISR & DMA_LISR_HTIF2) != 0U;
+        }
+        else if constexpr (Strm == StreamId::S3) {
+            return (d->LISR & DMA_LISR_HTIF3) != 0U;
+        }
+        else if constexpr (Strm == StreamId::S4) {
+            return (d->HISR & DMA_HISR_HTIF4) != 0U;
+        }
+        else if constexpr (Strm == StreamId::S5) {
+            return (d->HISR & DMA_HISR_HTIF5) != 0U;
+        }
+        else if constexpr (Strm == StreamId::S6) {
+            return (d->HISR & DMA_HISR_HTIF6) != 0U;
+        }
+        else if constexpr (Strm == StreamId::S7) {
+            return (d->HISR & DMA_HISR_HTIF7) != 0U;
+        }
+        return false;
+    }
+
+    EMPP_ALWAYS_INLINE static void clear_ht() noexcept
+    {
+        auto * const d = dma();
+
+        if constexpr (Strm == StreamId::S0) {
+            d->LIFCR = DMA_LIFCR_CHTIF0;
+        }
+        else if constexpr (Strm == StreamId::S1) {
+            d->LIFCR = DMA_LIFCR_CHTIF1;
+        }
+        else if constexpr (Strm == StreamId::S2) {
+            d->LIFCR = DMA_LIFCR_CHTIF2;
+        }
+        else if constexpr (Strm == StreamId::S3) {
+            d->LIFCR = DMA_LIFCR_CHTIF3;
+        }
+        else if constexpr (Strm == StreamId::S4) {
+            d->HIFCR = DMA_HIFCR_CHTIF4;
+        }
+        else if constexpr (Strm == StreamId::S5) {
+            d->HIFCR = DMA_HIFCR_CHTIF5;
+        }
+        else if constexpr (Strm == StreamId::S6) {
+            d->HIFCR = DMA_HIFCR_CHTIF6;
+        }
+        else if constexpr (Strm == StreamId::S7) {
+            d->HIFCR = DMA_HIFCR_CHTIF7;
+        }
+    }
+
+    EMPP_ALWAYS_INLINE static uint16_t get_length() noexcept
+    {
+        return stream()->NDTR & DMA_SxNDT;
     }
 };
 

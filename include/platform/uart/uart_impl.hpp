@@ -24,6 +24,21 @@ struct UartImpl
 
     EMPP_ALWAYS_INLINE static bool is_rc() noexcept { return Backend::is_rc(); }
 
+    EMPP_ALWAYS_INLINE static bool is_idle() noexcept
+    {
+        return Backend::is_idle();
+    }
+
+    EMPP_ALWAYS_INLINE static void clear_tc() noexcept
+    {
+        Backend::clear_tc();
+    }
+
+    EMPP_ALWAYS_INLINE static void clear_idle() noexcept
+    {
+        Backend::clear_idle();
+    }
+
     EMPP_ALWAYS_INLINE static void enable_irq_tx() noexcept
     {
         Backend::enable_irq_tx();
@@ -42,6 +57,16 @@ struct UartImpl
     EMPP_ALWAYS_INLINE static void disable_irq_rx() noexcept
     {
         Backend::disable_irq_rx();
+    }
+
+    EMPP_ALWAYS_INLINE static void enable_irq_idle() noexcept
+    {
+        Backend::enable_irq_idle();
+    }
+
+    EMPP_ALWAYS_INLINE static void disable_irq_idle() noexcept
+    {
+        Backend::disable_irq_idle();
     }
 
     /* DMA TX */
@@ -66,7 +91,7 @@ struct UartImpl
     }
 
     EMPP_ALWAYS_INLINE static void config_dma_tx(const void    *buffer,
-                                                 const uint32_t length) noexcept
+                                                 const uint16_t length) noexcept
     {
         Backend::config_dma_tx(buffer, length);
     }
@@ -92,7 +117,7 @@ struct UartImpl
         Backend::disable_dma_rx();
     }
     EMPP_ALWAYS_INLINE static void config_dma_rx(const void    *buffer,
-                                                 const uint32_t length) noexcept
+                                                 const uint16_t length) noexcept
     {
         Backend::config_dma_rx(buffer, length);
     }
@@ -105,6 +130,16 @@ struct UartImpl
     EMPP_ALWAYS_INLINE static void disable_irq_dma_rx_tc() noexcept
     {
         Backend::disable_irq_dma_rx_tc();
+    }
+
+    EMPP_ALWAYS_INLINE static void enable_irq_dma_rx_ht() noexcept
+    {
+        Backend::enable_irq_dma_rx_ht();
+    }
+
+    EMPP_ALWAYS_INLINE static void disable_irq_dma_rx_ht() noexcept
+    {
+        Backend::disable_irq_dma_rx_ht();
     }
 
     EMPP_ALWAYS_INLINE static void start_dma_rx() noexcept
