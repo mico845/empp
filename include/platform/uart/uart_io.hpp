@@ -4,6 +4,7 @@
 
 #include "empp/type.hpp"
 #include "uart_impl.hpp"
+#include "empp/define.hpp"
 
 namespace empp::platform::uart {
 

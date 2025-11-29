@@ -1,6 +1,8 @@
 // uart_concept.hpp
 #pragma once
+
 #include "empp/type.hpp"
+#include "empp/define.hpp"
 
 namespace empp::platform::uart {
 

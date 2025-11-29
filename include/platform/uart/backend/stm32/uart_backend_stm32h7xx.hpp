@@ -5,6 +5,7 @@
 #if defined(EMPP_CHIP_STM32H7)
     #include "empp/driver.hpp"
     #include "empp/type.hpp"
+    #include "empp/define.hpp"
     #include "platform/dma/dma_concept.hpp"
 
 namespace empp::stm32h7xx::uart {
