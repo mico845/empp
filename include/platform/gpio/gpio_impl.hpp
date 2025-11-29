@@ -1,5 +1,7 @@
 // gpio_impl.hpp
 #pragma once
+
+#include "empp/define.hpp"
 #include "gpio_concept.hpp"
 
 namespace empp::platform::gpio {
@@ -7,13 +9,10 @@ namespace empp::platform::gpio {
 template <GpioBackend Backend>
 struct GpioImpl
 {
-    EMPP_ALWAYS_INLINE static void set() noexcept { Backend::set(); }
-
-    EMPP_ALWAYS_INLINE static void reset() noexcept { Backend::reset(); }
-
-    EMPP_ALWAYS_INLINE static void toggle() noexcept { Backend::toggle(); }
-
-    EMPP_ALWAYS_INLINE static bool read() noexcept { return Backend::read(); }
+    EMPP_STATIC_INLINE void set() EMPP_NOEXCEPT { Backend::set(); }
+    EMPP_STATIC_INLINE void reset() EMPP_NOEXCEPT { Backend::reset(); }
+    EMPP_STATIC_INLINE void toggle() EMPP_NOEXCEPT { Backend::toggle(); }
+    EMPP_STATIC_INLINE bool read() EMPP_NOEXCEPT { return Backend::read(); }
 };
 
 } // namespace empp::platform::gpio

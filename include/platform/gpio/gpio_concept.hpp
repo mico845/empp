@@ -1,6 +1,8 @@
 // gpio_concept.hpp
 #pragma once
+
 #include "empp/type.hpp"
+#include "empp/define.hpp"
 
 namespace empp::platform::gpio {
 
@@ -8,16 +10,20 @@ template <typename T>
 concept GpioBackend = requires {
     {
         T::set()
-    } noexcept;
+    }
+    EMPP_NOEXCEPT;
     {
         T::reset()
-    } noexcept;
+    }
+    EMPP_NOEXCEPT;
     {
         T::toggle()
-    } noexcept;
+    }
+    EMPP_NOEXCEPT;
     {
         T::read()
-    } noexcept -> std::same_as<bool>;
+    }
+    EMPP_NOEXCEPT->std::same_as<bool>;
 };
 
 } // namespace empp::platform::gpio

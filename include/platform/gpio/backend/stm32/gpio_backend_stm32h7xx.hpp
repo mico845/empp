@@ -16,12 +16,13 @@ namespace empp::stm32h7xx::gpio {
  * 详情可以参考 STM32H7
  * 开启IO补偿单元和关闭补偿单元，GPIO配置不同速度等级的最高速度
  */
-__used EMPP_ALWAYS_INLINE static void enable_speed_optimization() noexcept
+
+__used EMPP_STATIC_INLINE void enable_speed_optimization() EMPP_NOEXCEPT
 {
     SYSCFG->CCCSR |= SYSCFG_CCCSR_HSLV;
 }
 
-__used EMPP_ALWAYS_INLINE static void disable_speed_optimization() noexcept
+__used EMPP_STATIC_INLINE void disable_speed_optimization() EMPP_NOEXCEPT
 {
     SYSCFG->CCCSR &= ~SYSCFG_CCCSR_HSLV;
 }
@@ -33,10 +34,11 @@ struct GpioBackend
                   "Invalid GPIO port: only A(0)~H(7) are supported on STM32H7");
     static_assert(ID.pin <= 15u,
                   "Invalid GPIO pin: only pin 0~15 are valid for STM32H7");
-    static constexpr uint32_t MASK       = (1u << ID.pin);
-    static constexpr uint32_t MASK_RESET = (1u << (ID.pin + 16));
 
-    EMPP_ALWAYS_INLINE static GPIO_TypeDef *regs() noexcept
+    static constexpr uint32_t MASK       = (uint32_t{1} << ID.pin);
+    static constexpr uint32_t MASK_RESET = (uint32_t{1} << (ID.pin + 16));
+
+    EMPP_STATIC_INLINE GPIO_TypeDef *regs() EMPP_NOEXCEPT
     {
         if constexpr (ID.port == 0)
             return GPIOA;
@@ -58,14 +60,11 @@ struct GpioBackend
         __builtin_unreachable();
     }
 
-    EMPP_ALWAYS_INLINE static void set() noexcept { regs()->BSRR = MASK; }
+    EMPP_STATIC_INLINE void set() EMPP_NOEXCEPT { regs()->BSRR = MASK; }
 
-    EMPP_ALWAYS_INLINE static void reset() noexcept
-    {
-        regs()->BSRR = MASK_RESET;
-    }
+    EMPP_STATIC_INLINE void reset() EMPP_NOEXCEPT { regs()->BSRR = MASK_RESET; }
 
-    EMPP_ALWAYS_INLINE static void toggle() noexcept
+    EMPP_STATIC_INLINE void toggle() EMPP_NOEXCEPT
     {
         /*
          * 电平反转不选择使用 regs()->ODR ^= MASK;
@@ -78,14 +77,16 @@ struct GpioBackend
     #if 0
         regs()->ODR ^= MASK;
     #else
-        if (auto *r = regs(); r->ODR & MASK)
+        if (auto * const r = regs(); (r->ODR & MASK) != 0U) {
             r->BSRR = MASK_RESET;
-        else
+        }
+        else {
             r->BSRR = MASK;
+        }
     #endif
     }
 
-    EMPP_ALWAYS_INLINE static bool read() noexcept
+    EMPP_STATIC_INLINE bool read() EMPP_NOEXCEPT
     {
         return (regs()->IDR & MASK) != 0;
     }
