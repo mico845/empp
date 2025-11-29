@@ -14,15 +14,13 @@ namespace empp::stm32h7xx::cache {
 class CacheBackend
 {
 public:
-    #if defined(__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U) \
-        && (EMPP_USE_CACHE == 1U)
+    #if defined(__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U)
     static constexpr size_t DCACHE_LINE_SIZE = 32U;
     #endif
 
-    EMPP_STATIC_INLINE size_t line_size() EMPP_NOEXCEPT
+    [[nodiscard]] EMPP_STATIC_INLINE size_t line_size() EMPP_NOEXCEPT
     {
-    #if defined(__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U) \
-        && (EMPP_USE_CACHE == 1U)
+    #if defined(__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U)
         return DCACHE_LINE_SIZE;
     #else
         return 0U;
@@ -32,12 +30,7 @@ public:
     EMPP_STATIC_INLINE void invalidate_addr(const uintptr_t addr,
                                             const size_t    len) EMPP_NOEXCEPT
     {
-    #if defined(__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U) \
-        && (EMPP_USE_CACHE == 1U)
-        if ((addr == 0U) || (len == 0U)) {
-            return;
-        }
-
+    #if defined(__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U)
         const uintptr_t aligned = align_addr_to_line(addr);
         const size_t    offset  = addr - aligned;
         size_t          size    = len + offset;
@@ -55,12 +48,7 @@ public:
     EMPP_STATIC_INLINE void clean_addr(const uintptr_t addr,
                                        const size_t    len) EMPP_NOEXCEPT
     {
-    #if defined(__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U) \
-        && (EMPP_USE_CACHE == 1U)
-        if ((addr == 0U) || (len == 0U)) {
-            return;
-        }
-
+    #if defined(__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U)
         const auto   aligned = align_addr_to_line(addr);
         const size_t offset  = addr - aligned;
         size_t       size    = len + offset;
@@ -78,12 +66,7 @@ public:
     EMPP_STATIC_INLINE void
     clean_invalidate_addr(const uintptr_t addr, const size_t len) EMPP_NOEXCEPT
     {
-    #if defined(__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U) \
-        && (EMPP_USE_CACHE == 1U)
-        if ((addr == 0U) || (len == 0U)) {
-            return;
-        }
-
+    #if defined(__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U)
         const uintptr_t aligned = align_addr_to_line(addr);
         const size_t    offset  = addr - aligned;
         size_t          size    = len + offset;
@@ -103,8 +86,7 @@ private:
     EMPP_STATIC_INLINE constexpr uintptr_t
     align_addr_to_line(const uintptr_t addr) EMPP_NOEXCEPT
     {
-    #if defined(__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U) \
-        && (EMPP_USE_CACHE == 1U)
+    #if defined(__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U)
         return addr & ~(static_cast<uintptr_t>(DCACHE_LINE_SIZE) - 1U);
     #else
         (void)addr;
@@ -116,8 +98,7 @@ private:
     EMPP_STATIC_INLINE constexpr size_t
     align_size_to_line(const size_t size) EMPP_NOEXCEPT
     {
-    #if defined(__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U) \
-        && (EMPP_USE_CACHE == 1U)
+    #if defined(__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U)
         return (size + DCACHE_LINE_SIZE - 1U)
                & ~(static_cast<size_t>(DCACHE_LINE_SIZE) - 1U);
     #else

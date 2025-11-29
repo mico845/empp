@@ -3,6 +3,7 @@
 #include "empp_config.h"
 
 #if defined(EMPP_CHIP_STM32H7)
+    #include "empp/define.hpp"
     #include "platform/cache/cache_impl.hpp"
     #include "platform/cache/backend/stm32/cache_backend_stm32h7xx.hpp"
 
@@ -11,7 +12,7 @@ namespace empp::stm32h7xx::cache {
 using Impl = platform::cache::CacheImpl<CacheBackend>;
 
 /* Op */
-EMPP_STATIC_INLINE size_t line_size() EMPP_NOEXCEPT
+[[nodiscard]] EMPP_STATIC_INLINE size_t line_size() EMPP_NOEXCEPT
 {
     return Impl::line_size();
 }

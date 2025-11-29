@@ -100,7 +100,7 @@ struct UartImpl
                                           size_t      length) EMPP_NOEXCEPT
     {
 
-#if defined(EMPP_DEBUG_TYPECHECK) && (EMPP_DEBUG_TYPECHECK == 1U) \
+#if defined(EMPP_DEBUG_CHECK) && (EMPP_DEBUG_CHECK == 1U) \
     && defined(EMPP_CHIP_STM32H7)
         /* STM32 H7 DMA len 仅 16 bit */
         EMPP_ASSERT(!(length > 0xFFFFu),
@@ -135,7 +135,7 @@ struct UartImpl
     EMPP_STATIC_INLINE void config_dma_rx(const void *buffer,
                                           size_t      length) EMPP_NOEXCEPT
     {
-#if defined(EMPP_DEBUG_TYPECHECK) && (EMPP_DEBUG_TYPECHECK == 1U) \
+#if defined(EMPP_DEBUG_CHECK) && (EMPP_DEBUG_CHECK == 1U) \
     && defined(EMPP_CHIP_STM32H7)
         /* STM32 H7 DMA len 仅 16 bit */
         EMPP_ASSERT(!(length > 0xFFFFu),

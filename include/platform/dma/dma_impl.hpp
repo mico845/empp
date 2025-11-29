@@ -16,7 +16,7 @@ struct DmaImpl
                                        const uintptr_t memoryAddr,
                                        const size_t    length) EMPP_NOEXCEPT
     {
-#if defined(EMPP_DEBUG_TYPECHECK) && (EMPP_DEBUG_TYPECHECK == 1U)
+#if defined(EMPP_DEBUG_CHECK) && (EMPP_DEBUG_CHECK == 1U)
 
         // 所有平台通用的基本约束
         EMPP_ASSERT((length > 0U),

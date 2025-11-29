@@ -2,7 +2,7 @@
 #pragma once
 #include "empp_config.h"
 #if defined(EMPP_CHIP_STM32H7)
-
+    #include "empp/assert.hpp"
     #include "empp/driver.hpp"
     #include "empp/type.hpp"
     #include "empp/define.hpp"
@@ -28,15 +28,8 @@ struct DWTBackend
 
     EMPP_STATIC_INLINE void us(const uint32_t nUs) EMPP_NOEXCEPT
     {
-        EMPP_ASSERT(nUs > 0U, "DWTBackend::us called with 0 us");
-        EMPP_ASSERT(delay_state::ticks_per_us > 0U,
-                    "DWTBackend::us ticks_per_us is 0 (not initialized?)");
-
         const uint32_t start = DWT->CYCCNT;
-        const auto     ticks = static_cast<uint32_t>(static_cast<uint64_t>(nUs)
-                                                     * delay_state::ticks_per_us);
-
-        EMPP_ASSERT(ticks > 0U, "DWTBackend::us computed 0 ticks");
+        const auto     ticks = nUs * delay_state::ticks_per_us;
 
         while (DWT->CYCCNT - start < ticks) {
             __NOP();
@@ -46,8 +39,7 @@ struct DWTBackend
     // 延时 n 毫秒（单次最大约 8589.93ms @500MHz）
     EMPP_STATIC_INLINE void ms(const uint16_t nMs) EMPP_NOEXCEPT
     {
-        const auto total_us =
-            static_cast<uint32_t>(static_cast<uint64_t>(nMs) * 1000ULL);
+        const auto total_us = nMs * 1000ULL;
         us(total_us);
     }
 

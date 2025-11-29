@@ -4,7 +4,6 @@
 #include "empp_config.h"
 
 #if defined(EMPP_CHIP_STM32H7)
-
     #include "empp/driver.hpp"
     #include "empp/type.hpp"
     #include "empp/define.hpp"
@@ -33,19 +32,7 @@ struct SysTickBackend
 
     EMPP_STATIC_INLINE void us(const uint32_t nUs) EMPP_NOEXCEPT
     {
-        EMPP_ASSERT(nUs > 0U, "SysTickBackend::us called with 0 us");
-        EMPP_ASSERT(delay_state::ticks_per_us > 0U,
-                    "SysTickBackend::us ticks_per_us is 0 (not initialized?)");
-
-        const uint64_t raw_ticks =
-            static_cast<uint64_t>(nUs) * delay_state::ticks_per_us;
-
-        auto ticks = static_cast<uint32_t>((raw_ticks > 0x00FFFFFFu)
-                                               ? 0x00FFFFFFu
-                                               : raw_ticks); // 钳制到 24bit
-
-        EMPP_ASSERT(ticks > 0U,
-                    "SysTickBackend::us computed 0 ticks (check constraints)");
+        const uint32_t ticks = nUs * delay_state::ticks_per_us;
 
         SysTick->LOAD = ticks - 1U;      // 加载倒计时时间
         SysTick->VAL  = 0U;              // 清空当前计数
@@ -80,21 +67,9 @@ private:
     // 延时 n 毫秒（单次最大约 34.95ms @480MHz）
     EMPP_STATIC_INLINE void xms(const uint16_t nMs) EMPP_NOEXCEPT
     {
-        EMPP_ASSERT(nMs > 0U, "SysTickBackend::xms called with 0 ms");
-        EMPP_ASSERT(delay_state::ticks_per_us > 0U,
-                    "SysTickBackend::xms ticks_per_us is 0");
+        const uint32_t ticks = nMs * delay_state::ticks_per_us;
 
-        const uint64_t raw_ticks =
-            static_cast<uint64_t>(nMs) * 1000ULL * delay_state::ticks_per_us;
-
-        auto ticks = static_cast<uint32_t>((raw_ticks > 0x00FFFFFFu)
-                                               ? 0x00FFFFFFu
-                                               : raw_ticks); // 钳制到 24bit
-
-        EMPP_ASSERT(ticks > 0U,
-                    "SysTickBackend::xms computed 0 ticks (check constraints)");
-
-        SysTick->LOAD = ticks - 1U;
+        SysTick->LOAD = ticks - 1U;      // 加载倒计时时间
         SysTick->VAL  = 0U;              // 清空当前计数
         SysTick->CTRL |= SYSTICK_ENABLE; // 开始倒计时
 

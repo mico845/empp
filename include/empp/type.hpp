@@ -2,6 +2,7 @@
 #pragma once
 
 #include <cstdint>
+#include <limits>
 #include <concepts>
 #include "empp/fifo.hpp"
 
