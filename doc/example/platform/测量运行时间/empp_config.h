@@ -11,7 +11,7 @@
 
 // 选择 Delay 方式
 #if !defined(EMPP_DELAY_USE_SYSTICK) || !defined(EMPP_DELAY_USE_DWT)
-    #define EMPP_DELAY_USE_SYSTICK 0U
+    #define EMPP_DELAY_USE_SYSTICK 0U   // 👈 目前仅 DWT 支持测量运行时间功能
     #define EMPP_DELAY_USE_DWT     (!EMPP_DELAY_USE_SYSTICK)
 #endif
 

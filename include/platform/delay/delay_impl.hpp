@@ -1,5 +1,7 @@
 // delay_impl.hpp
 #pragma once
+
+#include "empp/define.hpp"
 #include "delay_concept.hpp"
 
 namespace empp::platform::delay {
@@ -7,22 +9,16 @@ namespace empp::platform::delay {
 template <DelayBackend Backend>
 struct DelayImpl
 {
-    EMPP_ALWAYS_INLINE static void init(uint16_t sysclk_mhz) noexcept
+    EMPP_STATIC_INLINE void init(uint16_t sysclk_mhz) EMPP_NOEXCEPT 
     {
         Backend::init(sysclk_mhz);
     }
 
-    EMPP_ALWAYS_INLINE static void us(uint32_t nUs) noexcept
-    {
-        Backend::us(nUs);
-    }
+    EMPP_STATIC_INLINE void us(uint32_t nUs) EMPP_NOEXCEPT  { Backend::us(nUs); }
 
-    EMPP_ALWAYS_INLINE static void ms(uint16_t nMs) noexcept
-    {
-        Backend::ms(nMs);
-    }
+    EMPP_STATIC_INLINE void ms(uint16_t nMs) EMPP_NOEXCEPT  { Backend::ms(nMs); }
 
-    EMPP_ALWAYS_INLINE static void s(uint16_t nS) noexcept
+    EMPP_STATIC_INLINE void s(uint16_t nS) EMPP_NOEXCEPT 
     {
         while (nS--)
             ms(1000);

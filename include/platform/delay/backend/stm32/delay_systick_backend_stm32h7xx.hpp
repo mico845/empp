@@ -5,6 +5,7 @@
 
     #include "empp/driver.hpp"
     #include "empp/type.hpp"
+    #include "empp/define.hpp"
     #include "platform/delay/delay_state.hpp"
 
 namespace empp::stm32h7xx::delay {
@@ -19,7 +20,7 @@ struct SysTickBackend
     static constexpr uint32_t SYSTICK_ENABLE    = SysTick_CTRL_ENABLE_Msk;
     static constexpr uint32_t SYSTICK_COUNTFLAG = SysTick_CTRL_COUNTFLAG_Msk;
 
-    EMPP_ALWAYS_INLINE static void init(const uint16_t sysclk_mhz) noexcept
+    EMPP_STATIC_INLINE void init(const uint16_t sysclk_mhz) EMPP_NOEXCEPT
     {
         SysTick->CTRL |=
             SYSTICK_CLKSOURCE_CPU; //  clock source -> Processor clock
@@ -28,7 +29,7 @@ struct SysTickBackend
         delay_state::ticks_per_us = sysclk_mhz; // 1us = sysclk_mhz tick
     }
 
-    EMPP_ALWAYS_INLINE static void us(const uint32_t nUs) noexcept
+    EMPP_STATIC_INLINE void us(const uint32_t nUs) EMPP_NOEXCEPT
     {
         if (nUs == 0u || delay_state::ticks_per_us == 0u) {
             return;
@@ -37,15 +38,20 @@ struct SysTickBackend
         const uint64_t raw_ticks =
             static_cast<uint64_t>(nUs) * delay_state::ticks_per_us;
 
-        auto ticks = static_cast<uint32_t>(raw_ticks > 0x00FFFFFFu ? 0x00FFFFFFu
-                                                                   : raw_ticks);
+        auto ticks = static_cast<uint32_t>((raw_ticks > 0x00FFFFFFu)
+                                               ? 0x00FFFFFFu
+                                               : raw_ticks); // 钳制到 24bit
 
-        SysTick->LOAD = ticks;           // 加载倒计时时间
-        SysTick->VAL  = 0;               // 清空当前计数
+        if (ticks == 0U) {
+            return;
+        }
+
+        SysTick->LOAD = ticks - 1U;      // 加载倒计时时间
+        SysTick->VAL  = 0U;              // 清空当前计数
         SysTick->CTRL |= SYSTICK_ENABLE; // 开始倒计时
 
         // 等待计数完成
-        while (!(SysTick->CTRL & SYSTICK_COUNTFLAG)) {
+        while ((SysTick->CTRL & SYSTICK_COUNTFLAG) == 0U) {
             __NOP();
         }
 
@@ -53,32 +59,43 @@ struct SysTickBackend
     }
 
     // 延时 n 毫秒，自动拆分成多段
-    EMPP_ALWAYS_INLINE static void ms(const uint16_t nMs) noexcept
+    EMPP_STATIC_INLINE void ms(const uint16_t nMs) EMPP_NOEXCEPT
     {
         constexpr uint16_t max_chunk_ms =
-            30; // 500Mhz的时候,delay_xms最大只能延时大约33.5ms，这里使用30
+            30; // 500MHz 时单次 < 33.5ms，这里取 30ms 保险
 
         uint16_t       repeat = nMs / max_chunk_ms;
         const uint16_t remain = nMs % max_chunk_ms;
 
-        while (repeat--) {
+        while (repeat-- != 0U) {
             xms(max_chunk_ms);
         }
-        if (remain) {
+        if (remain != 0U) {
             xms(remain);
         }
     }
 
 private:
     // 延时 n 毫秒（单次最大约 34.95ms @480MHz）
-    EMPP_ALWAYS_INLINE static void xms(const uint16_t nMs) noexcept
+    EMPP_STATIC_INLINE void xms(const uint16_t nMs) EMPP_NOEXCEPT
     {
-        const uint32_t ticks = nMs * delay_state::ticks_per_us
-                               * 1000u; // 时间加载(SysTick->LOAD为24bit,故 ms
-                                        // <= 2^24 *1000/SYSCLK)
+        if ((nMs == 0U) || (delay_state::ticks_per_us == 0U)) {
+            return;
+        }
 
-        SysTick->LOAD = ticks;           // 加载倒计时时间
-        SysTick->VAL  = 0;               // 清空当前计数
+        const uint64_t raw_ticks =
+            static_cast<uint64_t>(nMs) * 1000ULL * delay_state::ticks_per_us;
+
+        auto ticks = static_cast<uint32_t>((raw_ticks > 0x00FFFFFFu)
+                                               ? 0x00FFFFFFu
+                                               : raw_ticks); // 钳制到 24bit
+
+        if (ticks == 0U) {
+            return;
+        }
+
+        SysTick->LOAD = ticks - 1U;
+        SysTick->VAL  = 0U;              // 清空当前计数
         SysTick->CTRL |= SYSTICK_ENABLE; // 开始倒计时
 
         // 等待计数完成
