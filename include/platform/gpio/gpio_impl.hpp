@@ -12,7 +12,10 @@ struct GpioImpl
     EMPP_STATIC_INLINE void set() EMPP_NOEXCEPT { Backend::set(); }
     EMPP_STATIC_INLINE void reset() EMPP_NOEXCEPT { Backend::reset(); }
     EMPP_STATIC_INLINE void toggle() EMPP_NOEXCEPT { Backend::toggle(); }
-    EMPP_STATIC_INLINE bool read() EMPP_NOEXCEPT { return Backend::read(); }
+    [[nodiscard]] EMPP_STATIC_INLINE bool read() EMPP_NOEXCEPT
+    {
+        return Backend::read();
+    }
 };
 
 } // namespace empp::platform::gpio
