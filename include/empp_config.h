@@ -15,6 +15,8 @@
 #endif
 
 // 选择 Delay 方式
+// 推荐 DWT （精度更高且支持时间测量）
+// DWT 设置 EMPP_DELAY_USE_SYSTICK = 0U
 #if !defined(EMPP_DELAY_USE_SYSTICK) || !defined(EMPP_DELAY_USE_DWT)
     #define EMPP_DELAY_USE_SYSTICK 0U
     #define EMPP_DELAY_USE_DWT     (!EMPP_DELAY_USE_SYSTICK)
@@ -29,7 +31,7 @@
 #if !defined(NDEBUG)
     // DEBUG 关闭所有内联 进行单步调试
     #if !defined(EMPP_DEBUG_ONESTEP)
-        #define EMPP_DEBUG_ONESTEP 0U
+        #define EMPP_DEBUG_ONESTEP 1U
     #endif
 
     // DEBUG 类型检查
