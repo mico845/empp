@@ -17,7 +17,7 @@ EMPP_RAM_ITCM void Main()
         /* 测量运行结束时间 */
     });
 
-    Com1::println("time:", static_cast<int>(time_us), "us");
+    Com1::println("time:", time_us, "us");
 
     for (;;) {
     }

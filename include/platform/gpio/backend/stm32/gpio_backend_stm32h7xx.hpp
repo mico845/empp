@@ -38,7 +38,7 @@ struct GpioBackend
     static constexpr uint32_t MASK       = (uint32_t{1} << ID.pin);
     static constexpr uint32_t MASK_RESET = (uint32_t{1} << (ID.pin + 16));
 
-    EMPP_STATIC_INLINE GPIO_TypeDef *regs() EMPP_NOEXCEPT
+    EMPP_STATIC_INLINE constexpr GPIO_TypeDef *regs() EMPP_NOEXCEPT
     {
         if constexpr (ID.port == 0)
             return GPIOA;

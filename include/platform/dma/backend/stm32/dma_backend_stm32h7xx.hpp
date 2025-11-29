@@ -33,7 +33,7 @@ struct DmaBackend
     static_assert(static_cast<uint8_t>(Strm) <= 7u,
                   "Invalid StreamId for STM32H7 DmaBackend");
 
-    EMPP_ALWAYS_INLINE static DMA_TypeDef *dma() noexcept
+    EMPP_ALWAYS_INLINE static constexpr DMA_TypeDef *dma() noexcept
     {
         if constexpr (Dma == DMAId::Dma1) {
             return DMA1;
@@ -43,7 +43,7 @@ struct DmaBackend
         }
     }
 
-    EMPP_ALWAYS_INLINE static DMA_Stream_TypeDef *stream() noexcept
+    EMPP_ALWAYS_INLINE static constexpr DMA_Stream_TypeDef *stream() noexcept
     {
 
         if constexpr (Dma == DMAId::Dma1) {

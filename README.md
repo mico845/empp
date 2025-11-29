@@ -92,6 +92,32 @@ void Main()
 }
 ```
 
+### 示例：测量运行时间
+
+使用 DWT 测量代码运行时间
+
+```c++
+using Com1 = uart::U1;
+
+EMPP_RAM_ITCM void Main()
+{
+    delay::init();
+
+    const uint32_t time_us = delay::measure_us([] {
+        /* 测量运行开始时间 */
+        gpio::PD12::toggle();
+        delay::us(1);
+        gpio::PD12::toggle();
+        /* 测量运行结束时间 */
+    });
+
+    Com1::println("time:", time_us, "us");
+
+    for (;;) {
+    }
+}
+```
+
 ### 示例：UART
 
 非中断发送 `"hello world\r\n"`

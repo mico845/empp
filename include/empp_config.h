@@ -25,6 +25,16 @@
     #define EMPP_DEBUG_ONESTEP 0U
 #endif
 
+// DEBUG 类型检查
+#if !defined(EMPP_DEBUG_TYPECHECK)
+    #define EMPP_DEBUG_TYPECHECK 1U
+#endif
+
+// 使能断言
+#if !defined(EMPP_USE_ASSERT)
+    #define EMPP_USE_ASSERT 0U
+#endif
+
 #if !defined(EMPP_USE_CACHE)
     #define EMPP_USE_CACHE 1U
 #endif

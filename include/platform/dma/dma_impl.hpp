@@ -8,9 +8,9 @@ namespace empp::platform::dma {
 template <DmaBackend Backend>
 struct DmaImpl
 {
-    EMPP_ALWAYS_INLINE static void configAddr(const uint32_t peripheralAddr,
-                                              const uint32_t memoryAddr,
-                                              const uint16_t length) noexcept
+    EMPP_ALWAYS_INLINE static void configAddr(const uintptr_t peripheralAddr,
+                                              const uintptr_t memoryAddr,
+                                              const size_t    length) noexcept
     {
         Backend::configAddr(peripheralAddr, memoryAddr, length);
     }

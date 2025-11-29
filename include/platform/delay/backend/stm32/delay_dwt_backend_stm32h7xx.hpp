@@ -28,13 +28,16 @@ struct DWTBackend
 
     EMPP_STATIC_INLINE void us(const uint32_t nUs) EMPP_NOEXCEPT
     {
-        if ((nUs == 0U) || (delay_state::ticks_per_us == 0U)) {
-            return;
-        }
+        EMPP_ASSERT(nUs > 0U, "DWTBackend::us called with 0 us");
+        EMPP_ASSERT(delay_state::ticks_per_us > 0U,
+                    "DWTBackend::us ticks_per_us is 0 (not initialized?)");
 
         const uint32_t start = DWT->CYCCNT;
         const auto     ticks = static_cast<uint32_t>(static_cast<uint64_t>(nUs)
                                                      * delay_state::ticks_per_us);
+
+        EMPP_ASSERT(ticks > 0U, "DWTBackend::us computed 0 ticks");
+
         while (DWT->CYCCNT - start < ticks) {
             __NOP();
         }
@@ -64,9 +67,10 @@ struct DWTBackend
         EMPP_NOEXCEPT
     {
         const uint32_t ticks_per_us = delay_state::ticks_per_us;
-        if (ticks_per_us == 0U) {
-            return 0U;
-        }
+
+        EMPP_ASSERT(ticks_per_us > 0U,
+                    "DWTBackend::cycles_to_us ticks_per_us is 0");
+
         return cycles / ticks_per_us;
     }
 };

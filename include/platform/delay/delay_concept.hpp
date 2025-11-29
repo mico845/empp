@@ -6,7 +6,7 @@
 namespace empp::platform::delay {
 
 template <typename T>
-concept DelayBackend = requires(uint32_t us, uint16_t ms, uint16_t sys_mhz) {
+concept DelayBackend = requires(size_t us, size_t ms, unsigned int sys_mhz) {
     {
         T::init(sys_mhz)
     }
