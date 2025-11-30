@@ -39,7 +39,7 @@ struct DWTBackend
     // 延时 n 毫秒（单次最大约 8589.93ms @500MHz）
     EMPP_STATIC_INLINE void ms(const uint16_t nMs) EMPP_NOEXCEPT
     {
-        const auto total_us = nMs * 1000ULL;
+        const auto total_us = static_cast<uint32_t>(nMs * 1000U);
         us(total_us);
     }
 

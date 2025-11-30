@@ -67,7 +67,8 @@ private:
     // 延时 n 毫秒（单次最大约 34.95ms @480MHz）
     EMPP_STATIC_INLINE void xms(const uint16_t nMs) EMPP_NOEXCEPT
     {
-        const uint32_t ticks = nMs * delay_state::ticks_per_us * 1000ULL;
+        const uint32_t ticks =
+            static_cast<uint32_t>(nMs) * delay_state::ticks_per_us * 1000U;
 
         SysTick->LOAD = ticks - 1U;      // 加载倒计时时间
         SysTick->VAL  = 0U;              // 清空当前计数

@@ -15,8 +15,10 @@ struct DelayImpl
     {
 #if defined(EMPP_DEBUG_CHECK) && (EMPP_DEBUG_CHECK == 1U) \
     && defined(EMPP_CHIP_STM32H7)
-        EMPP_ASSERT(sysclk_mhz <= 0xFFFFu,
-                    "STM32H7 sysclk_mhz does not fit backend uint16_t");
+        EMPP_ASSERT(
+            sysclk_mhz <= 1000U,
+            "STM32H7 sysclk_mhz must be <= 1000 MHz"); /* H7 暂时不会超频到
+                                                          1 GHZ */
 #endif
         Backend::init(sysclk_mhz);
     }

@@ -7,7 +7,7 @@
 namespace empp::platform::gpio {
 
 template <typename T>
-concept GpioBackend = std::is_empty_v<T> // 保证 0 开销
+concept GpioBackend = std::is_empty_v<T> /* 保证 0 开销 */
                       && requires {
                              {
                                  T::set()

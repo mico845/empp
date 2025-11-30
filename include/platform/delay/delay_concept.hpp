@@ -6,20 +6,21 @@
 namespace empp::platform::delay {
 
 template <typename T>
-concept DelayBackend = requires(size_t us, size_t ms, unsigned int sys_mhz) {
-    {
-        T::init(sys_mhz)
-    }
-    EMPP_NOEXCEPT;
+concept DelayBackend = std::is_empty_v<T> /* 保证 0 开销 */
+                       && requires(size_t us, size_t ms, unsigned int sys_mhz) {
+                              {
+                                  T::init(sys_mhz)
+                              }
+                              EMPP_NOEXCEPT;
 
-    {
-        T::us(us)
-    }
-    EMPP_NOEXCEPT;
-    {
-        T::ms(ms)
-    }
-    EMPP_NOEXCEPT;
-};
+                              {
+                                  T::us(us)
+                              }
+                              EMPP_NOEXCEPT;
+                              {
+                                  T::ms(ms)
+                              }
+                              EMPP_NOEXCEPT;
+                          };
 
 } // namespace empp::platform::delay

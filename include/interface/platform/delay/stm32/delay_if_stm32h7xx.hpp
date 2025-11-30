@@ -3,6 +3,7 @@
 #include "empp_config.h"
 
 #if defined(EMPP_CHIP_STM32H7)
+    #include "empp/type.hpp"
     #include "empp/define.hpp"
     #include "platform/delay/delay_impl.hpp"
     #include "platform/delay/backend/stm32/delay_dwt_backend_stm32h7xx.hpp"
@@ -51,7 +52,7 @@ EMPP_STATIC_INLINE uint32_t cycles_to_us(const uint32_t cycles) EMPP_NOEXCEPT
 }
 
 template <typename F>
-EMPP_STATIC_INLINE uint32_t measure_cycles(F &&f) EMPP_NOEXCEPT
+EMPP_STATIC_INLINE uint32_t measure_cycles(F &&f)
 {
     const volatile uint32_t start = Backend::now_cycles();
     std::forward<F>(f)();
@@ -59,7 +60,7 @@ EMPP_STATIC_INLINE uint32_t measure_cycles(F &&f) EMPP_NOEXCEPT
 }
 
 template <typename F>
-EMPP_STATIC_INLINE uint32_t measure_us(F &&f) EMPP_NOEXCEPT
+EMPP_STATIC_INLINE uint32_t measure_us(F &&f)
 {
     const volatile uint32_t cycles = measure_cycles(std::forward<F>(f));
     return Backend::cycles_to_us(cycles);

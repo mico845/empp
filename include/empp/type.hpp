@@ -4,6 +4,9 @@
 #include <cstdint>
 #include <limits>
 #include <concepts>
+#include <type_traits>
+#include <utility>
+
 #include "empp/fifo.hpp"
 
 namespace empp {
