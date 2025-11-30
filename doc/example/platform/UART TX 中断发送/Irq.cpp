@@ -47,11 +47,23 @@ void PendSV_Handler() { /* something */ }
 
 void SysTick_Handler() { /* something */ }
 
-static void callback_rx() { ch = Com1::read(); }
+constexpr uint8_t str[]   = "hello\r\n";
+constexpr uint8_t str_len = sizeof(str) - 1;
+
+static void callback_tx()
+{
+    static uint8_t tx_byte_nums = 0;
+    if (tx_byte_nums < str_len) {
+        Com1::write(str[tx_byte_nums++]);
+    }
+    else {
+        Com1::disable_irq_tx();
+    }
+}
 
 void USART1_IRQHandler()
 {
-    if (Com1::is_rc()) {
-        callback_rx();
+    if (Com1::is_tc()) { // 👈 检测是否是 tx 完成中断
+        callback_tx();   // 跳转 callback_tx 执行
     }
 }

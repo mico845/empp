@@ -13,4 +13,7 @@ extern "C" {
 
 /*---------------------------- C++ Scope ---------------------------*/
 
+    #include "board.hpp"
+
+inline volatile uint8_t ch = 0; // 公共变量
 #endif

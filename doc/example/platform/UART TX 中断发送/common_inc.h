@@ -13,7 +13,5 @@ extern "C" {
 
 /*---------------------------- C++ Scope ---------------------------*/
 
-    #include <empp.h>
-using namespace empp::stm32h7xx;
-
+    #include "board.hpp"
 #endif

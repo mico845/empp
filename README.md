@@ -75,65 +75,114 @@ EMPP（Embedded Platform with C++） 是一款基于 STM32 的轻量级、追求
 
 ## 🧪示例
 
-### 示例：GPIO + Delay
+**这里均省略了 STM32CubeMX 的初始化代码**
 
-闪烁点灯
+**假设已经正确配置好时钟和外设**
+
+### 示例：点灯程序
 
 ```c++
-using Led = gpio::PC13;
+using Led  = gpio::PC13;         
+using Com1 = uart::U1;
 
-void Main()
-{
-    delay::init();
-    while (true) {
-        Led::toggle();
-        delay::ms(500);
-    }
+delay::init();                  // 👈 初始化延时（DWT / SysTick）
+
+Com1::println("LED blink start");
+
+while (true) {
+  Led::toggle();              // 👈 翻转 LED 状态
+  delay::ms(500);             // 👈 延时 500ms
 }
 ```
 
-### 示例：测量运行时间
+### 示例：GPIO 操作
+
+输出高低电平、反转电平、读取电平状态：
+
+```c++
+using namespace empp::stm32h7xx::gpio;
+
+PC0::reset();                   // 👈 输出低电平
+PC0::set();                     // 👈 输出高电平
+PC0::toggle();                  // 👈 反转一次电平
+const bool level = PC1::read(); // 👈 读取当前电平状态
+```
+
+### 示例：Delay 阻塞延时
+
+阻塞延时 100us / 10ms / 1s
+
+```c++
+// - 若 EMPP_DELAY_USE_DWT = 1, EMPP_DELAY_USE_SYSTICK = 0, 则使用 DWT
+// 作延时；
+// - 若 EMPP_DELAY_USE_SYSTICK = 1, EMPP_DELAY_USE_DWT = 0, 则使用 SysTick
+// 作延时；
+// - 内部会根据 EMPP_SYSCLK_MHZ 设置 ticks_per_us。
+delay::init(); // 👈 初始化延时（DWT / SysTick）
+
+
+
+delay::us(100);   // 👈 延时 100 微秒
+delay::ms(10);    // 👈 延时 10 毫秒
+delay::s(1);      // 👈 延时 1 秒（内部为 1000 * ms(1)）
+```
+
+### 示例：DWT 测量运行时间
 
 使用 DWT 测量代码运行时间
 
 ```c++
-using Com1 = uart::U1;
+delay::init();                              // 👈 初始化 (务必使用 DWT 即 DWT EMPP_DELAY_USE_DWT = 1)
 
-EMPP_RAM_ITCM void Main()
-{
-    delay::init();
+const uint32_t time_us = delay::measure_us([] {
+  /* 测量运行开始时间 👈 */
+  gpio::PD12::toggle();
+  delay::us(1);
+  gpio::PD12::toggle();
+  /* 测量运行结束时间 👈 */
+});
 
-    const uint32_t time_us = delay::measure_us([] {
-        /* 测量运行开始时间 */
-        gpio::PD12::toggle();
-        delay::us(1);
-        gpio::PD12::toggle();
-        /* 测量运行结束时间 */
-    });
-
-    Com1::println("time:", time_us, "us");
-
-    for (;;) {
-    }
-}
+Com1::println("time:", time_us, "us");      // 👈 打印测量结果 time_us
 ```
 
-### 示例：UART
+### 示例：UART 阻塞发送
 
-非中断发送 `"hello world\r\n"`
+发送字符串、拼接字符串、无符号类型、有符号类型，逐 Byte 发送
 
 ```c++
 using Com1 = uart::U1;
 
-void Main()
-{
-    delay::init();
-    while (true) {
-        Com1::println("hello world");
-        delay::s(1);
-    }
+uint32_t num_32b = 0XF0F0F0F0U;
+int      num_neg = -1;
+char     str1[]  = "welcome to empp! ";
+char     str2[]  = "this is uart test. ";
+char     str3[]  = "let's go!";
+ 
+Com1::println("hello, empp");           // 👈 传输字符串
+Com1::println(str1, str2, str3);        // 👈 传输拼接字符串
+Com1::println("num(32b) = ", num_32b);  // 👈 传输无符号类型
+Com1::println("num(int) = ", num_neg);  // 👈 传输有符号类型
+
+for (uint8_t buf[3] = {0xAB, 0xCD, 0xEF}; auto c : buf)
+     Com1::write(c);                     // 👈 逐 Byte 发送
+```
+
+### 示例：UART 轮询接收
+
+轮询接收——如果接收为 `'t'` 则反转 LED 电平
+
+```c++
+using Com1 = uart::U1;
+using Led  = gpio::PC13;
+
+while (true) {
+  if (const auto r = Com1::read(); r == 't') {    /* 👈 Com1::read() 读取一个 uint8_t */
+      Led::toggle();
+  }
 }
 ```
+
+### 示例：UART TX 中断发送
 
 中断发送 `"hello\r\n"`
 
@@ -142,9 +191,10 @@ using Com1 = uart::U1;
 
 void Main()
 {
-    Com1::enable_irq_tx();
+    Com1::enable_irq_tx();   // 👈 使能 UART tx 中断
 
-    while (true) {
+    for (;;) {
+        __NOP();
     }
 }
 
@@ -164,11 +214,46 @@ static void callback_tx()
 
 void USART1_IRQHandler()
 {
-    if (Com1::is_tc()) {
-        callback_tx();
+    if (Com1::is_tc()) {    // 👈 检测是否是 tx 完成中断
+        callback_tx();      // 跳转 callback_tx 执行
     }
 }
 ```
+
+### 示例：UART RX 中断读取
+
+中断读取——如果是 `'t'` 则反转 LED 电平
+
+```c++
+using Com1 = uart::U1;
+using Led  = gpio::PC13;
+
+inline volatile uint8_t ch = 0;
+
+void Main()
+{
+    Com1::enable_irq_rx(); // 👈 使能 UART rx 中断
+
+    for (;;) {
+        if (ch == 't') {
+            Led::toggle();
+            ch = 0;
+        }
+    }
+}
+
+static void callback_rx() { ch = Com1::read(); }
+
+void USART1_IRQHandler()
+{
+    if (Com1::is_rx()) { // 👈 检测是否是 rx 完成中断
+        callback_rx();   // 跳转 callback_rx 执行
+    }
+}
+```
+
+
+### TODO ...
 
 DMA 发送 `"hello world!\r\n"`
 
@@ -210,51 +295,6 @@ void DMA2_Stream7_IRQHandler()
     if (Uart1TxDma::is_tc()) {
         uart_flag = true;
         Uart1TxDma::clear_tc();
-    }
-}
-```
-
-非中断接收 如果是 `'t'` 则反转 LED 电平
-
-```c++
-using Com1 = uart::U1;
-using Led  = gpio::PC13;
-
-void Main()
-{
-    while (true) {
-        if (const auto r = Com1::read(); r == 't') {
-            Led::toggle();
-        }
-    }
-}
-```
-
-中断接收 如果是 `'t'` 则反转 LED 电平
-
-```c++
-using Com1 = uart::U1;
-using Led  = gpio::PC13;
-
-
-void Main()
-{
-    Com1::enable_irq_rx();
-
-    while (true) {
-        if (ch == 't') {
-            Led::toggle();
-            ch = 0;
-        }
-    }
-}
-
-static void callback_rx() { ch = Com1::read(); }
-
-void USART1_IRQHandler()
-{
-    if (Com1::is_rc()) {
-        callback_rx();
     }
 }
 ```

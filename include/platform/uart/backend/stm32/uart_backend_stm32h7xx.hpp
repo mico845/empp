@@ -11,7 +11,7 @@
 namespace empp::stm32h7xx::uart {
 
 /**
- * @brief STM32H7 UART 外设后端（Backend）。
+ * @brief STM32H7 UART 外设 Backend。
  *
  * @tparam UartId UART 实例编号[1..6]，在编译期选择对应的 USARTx/UARTx
  * 寄存器组。
@@ -100,7 +100,7 @@ struct UARTBackend
      * @brief 使能 TXE/TXFNF 中断。
      *
      * @details
-     * 设置 CR1 TXEIE/TXFNFIE 位，使能“发送数据寄存器为空 / TX FIFO 未满”中断，
+     * 设置 CR1.TXEIE/TXFNFIE 位，使能“发送数据寄存器为空 / TX FIFO 未满”中断，
      * 用于在中断服务函数中持续填充 TX FIFO。
      */
     EMPP_STATIC_INLINE void enable_irq_tx() EMPP_NOEXCEPT
@@ -120,7 +120,7 @@ struct UARTBackend
      * @brief 使能传输完成（TC）中断。
      *
      * @details
-     * 设置 CR1 TCIE 位，传输完成时触发中断。
+     * 设置 CR1.TCIE 位，传输完成时触发中断。
      * 将最后一个数据写入 USART_TDR 寄存器后，等待 TC =“1”：
      * – 禁止 FIFO 模式时，这表示最后一个帧的发送已完成。
      * – 使能 FIFO 模式时，这表示 TXFIFO 和移位寄存器均为空。
@@ -142,7 +142,7 @@ struct UARTBackend
      * @brief 使能接收数据寄存器非空 / RX FIFO 非空中断。
      *
      * @details
-     * 设置 CR1 RXNEIE/RXFNEIE 位，使能“接收数据寄存器非空/RXFIFO 非空”中断
+     * 设置 CR1.RXNEIE/RXFNEIE 位，使能“接收数据寄存器非空/RXFIFO 非空”中断
      */
     EMPP_STATIC_INLINE void enable_irq_rx() EMPP_NOEXCEPT
     {
@@ -226,7 +226,7 @@ struct UARTBackend
      * @brief 清除传输完成（TC）标志。
      *
      * @details
-     * 向 USART_ICR TCCF 写 1 清除 TC 标志。
+     * 向 USART_ICR.TCCF 写 1 清除 TC 标志。
      */
     EMPP_STATIC_INLINE void clear_tc() EMPP_NOEXCEPT
     {
@@ -237,7 +237,7 @@ struct UARTBackend
      * @brief 清除 TXFIFO 为空（TXFECF）标志。
      *
      * @details
-     * 向 USART_ICR TXFECF 写 1 清除 TXFIFO 为空标志 (TXFIFO empty clear)。
+     * 向 USART_ICR.TXFECF 写 1 清除 TXFIFO 为空标志 (TXFIFO empty clear)。
      */
     EMPP_STATIC_INLINE void clear_tx() EMPP_NOEXCEPT
     {
@@ -248,7 +248,7 @@ struct UARTBackend
      * @brief 清除空闲（IDLE）标志。
      *
      * @details
-     * 向 USART_ICR IDLECF 写 1 清除 IDLE 标志。
+     * 向 USART_ICR.IDLECF 写 1 清除 IDLE 标志。
      */
     EMPP_STATIC_INLINE void clear_idle() EMPP_NOEXCEPT
     {
@@ -259,7 +259,7 @@ struct UARTBackend
      * @brief 使能 TX 方向 DMA 请求。
      *
      * @details
-     * 设置 CR3 DMAT 位，允许 USART 通过 DMA 发送数据。
+     * 设置 CR3.DMAT 位，允许 USART 通过 DMA 发送数据。
      */
     EMPP_STATIC_INLINE void enable_dma_tx() EMPP_NOEXCEPT
     {
@@ -436,7 +436,7 @@ struct UARTBackend
      * @brief 启动 TX 方向 DMA 传输。
      *
      * @details
-     * - 在启动 DMA 之前清除 UART TC 标志（ICR TCCF），
+     * - 在启动 DMA 之前清除 UART TC 标志（ICR.TCCF），
      *   以便在本次 DMA 发送完成后准确检测到 TC；
      * - 每次 TXE/TXFNF 事件发生时，DMA 会自动将数据从内存搬运到 USART_TDR。
      */
