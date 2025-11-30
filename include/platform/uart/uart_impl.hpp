@@ -23,14 +23,19 @@ struct UartImpl
     }
 
     /* IRQ */
+    [[nodiscard]] EMPP_STATIC_INLINE bool is_tx() EMPP_NOEXCEPT
+    {
+        return Backend::is_tx();
+    }
+
     [[nodiscard]] EMPP_STATIC_INLINE bool is_tc() EMPP_NOEXCEPT
     {
         return Backend::is_tc();
     }
 
-    [[nodiscard]] EMPP_STATIC_INLINE bool is_rc() EMPP_NOEXCEPT
+    [[nodiscard]] EMPP_STATIC_INLINE bool is_rx() EMPP_NOEXCEPT
     {
-        return Backend::is_rc();
+        return Backend::is_rx();
     }
 
     [[nodiscard]] EMPP_STATIC_INLINE bool is_idle() EMPP_NOEXCEPT
@@ -39,6 +44,7 @@ struct UartImpl
     }
 
     EMPP_STATIC_INLINE void clear_tc() EMPP_NOEXCEPT { Backend::clear_tc(); }
+    EMPP_STATIC_INLINE void clear_tx() EMPP_NOEXCEPT { Backend::clear_tx(); }
 
     EMPP_STATIC_INLINE void clear_idle() EMPP_NOEXCEPT
     {
@@ -53,6 +59,16 @@ struct UartImpl
     EMPP_STATIC_INLINE void disable_irq_tx() EMPP_NOEXCEPT
     {
         Backend::disable_irq_tx();
+    }
+
+    EMPP_STATIC_INLINE void enable_irq_tc() EMPP_NOEXCEPT
+    {
+        Backend::enable_irq_tc();
+    }
+
+    EMPP_STATIC_INLINE void disable_irq_tc() EMPP_NOEXCEPT
+    {
+        Backend::disable_irq_tc();
     }
 
     EMPP_STATIC_INLINE void enable_irq_rx() EMPP_NOEXCEPT
@@ -100,12 +116,13 @@ struct UartImpl
                                           size_t      length) EMPP_NOEXCEPT
     {
 
-#if defined(EMPP_DEBUG_CHECK) && (EMPP_DEBUG_CHECK == 1U) \
-    && defined(EMPP_CHIP_STM32H7)
+#if defined(EMPP_DEBUG_CHECK) && (EMPP_DEBUG_CHECK == 1U)
+        EMPP_ASSERT(buffer != nullptr, "UART DMA Tx buffer is nullptr");
+        EMPP_ASSERT(length > 0U, "UART DMA Tx length is 0");
+    #if defined(EMPP_CHIP_STM32H7)
         /* STM32 H7 DMA len 仅 16 bit */
-        EMPP_ASSERT(!(length > 0xFFFFu),
-                    "STM32H7 DMA length exceeds 16-bit NDTR");
-
+        EMPP_ASSERT(length < 0xFFFFu, "STM32H7 DMA length exceeds 16-bit NDTR");
+    #endif
 #endif
 
         Backend::config_dma_tx(buffer, length);
@@ -135,11 +152,13 @@ struct UartImpl
     EMPP_STATIC_INLINE void config_dma_rx(const void *buffer,
                                           size_t      length) EMPP_NOEXCEPT
     {
-#if defined(EMPP_DEBUG_CHECK) && (EMPP_DEBUG_CHECK == 1U) \
-    && defined(EMPP_CHIP_STM32H7)
+#if defined(EMPP_DEBUG_CHECK) && (EMPP_DEBUG_CHECK == 1U)
+        EMPP_ASSERT(buffer != nullptr, "UART DMA Rx buffer is nullptr");
+        EMPP_ASSERT(length > 0U, "UART DMA Rx length is 0");
+    #if defined(EMPP_CHIP_STM32H7)
         /* STM32 H7 DMA len 仅 16 bit */
-        EMPP_ASSERT(!(length > 0xFFFFu),
-                    "STM32H7 DMA length exceeds 16-bit NDTR");
+        EMPP_ASSERT(length < 0xFFFFu, "STM32H7 DMA length exceeds 16-bit NDTR");
+    #endif
 #endif
 
         Backend::config_dma_rx(buffer, length);

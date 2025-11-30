@@ -14,6 +14,8 @@ class UartIO : public UartImpl<Backend>
 public:
     using Impl = UartImpl<Backend>;
 
+    static_assert(sizeof(int) == 4, "UartIO::print(int) assumes 32-bit int");
+
     EMPP_STATIC_INLINE void print(const char c) EMPP_NOEXCEPT
     {
         Impl::write(static_cast<uint8_t>(c));

@@ -15,7 +15,7 @@
 #if defined(__GNUC__) || defined(__clang__)
     #define EMPP_WEAK __attribute__((weak))
 #else
-    #define EMPP_WEAK __attribute__((weak))
+    #define EMPP_WEAK
 #endif
 
 #if defined(__GNUC__) || defined(__clang__)
