@@ -7,7 +7,8 @@
 namespace empp::platform::cache {
 
 template <typename T>
-concept CacheBackend = requires(uintptr_t addr, size_t len) {
+concept CacheBackend = std::is_empty_v<T> /* 保证 0 开销 */
+                      && requires(uintptr_t addr, size_t len) {
     {
         T::line_size()
     }

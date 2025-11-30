@@ -12,18 +12,20 @@ namespace empp::platform::dma {
 template <DmaBackend Backend>
 struct DmaImpl
 {
+    using length_type = Backend::length_type;
+
     EMPP_STATIC_INLINE void configAddr(const uintptr_t peripheralAddr,
                                        const uintptr_t memoryAddr,
                                        const size_t    length) EMPP_NOEXCEPT
     {
 #if defined(EMPP_DEBUG_CHECK) && (EMPP_DEBUG_CHECK == 1U)
 
-        // 所有平台通用的基本约束
-        EMPP_ASSERT((length > 0U),
+        EMPP_ASSERT((length > static_cast<Backend::length_type>(0U)),
                     "DMA transfer length must be greater than zero");
-        EMPP_ASSERT((peripheralAddr != 0U),
+        EMPP_ASSERT((peripheralAddr != static_cast<uintptr_t>(0U)),
                     "DMA peripheral address must be non-null");
-        EMPP_ASSERT((memoryAddr != 0U), "DMA memory address must be non-null");
+        EMPP_ASSERT((memoryAddr != static_cast<uintptr_t>(0U)),
+                    "DMA memory address must be non-null");
 
     #if defined(EMPP_CHIP_STM32H7)
         // H7 这层只做“位宽约束”，具体寄存器位数由 backend 决定

@@ -7,59 +7,60 @@
 namespace empp::platform::dma {
 
 template <typename T>
-concept DmaBackend =
-    requires(uintptr_t addr1, uintptr_t addr2, typename T::length_type length) {
-        {
-            T::configAddr(addr1, addr2, length)
-        }
-        EMPP_NOEXCEPT;
-        {
-            T::enable()
-        }
-        EMPP_NOEXCEPT;
-        {
-            T::disable()
-        }
-        EMPP_NOEXCEPT;
-        {
-            T::clear_all_flags()
-        }
-        EMPP_NOEXCEPT;
-        {
-            T::clear_tc()
-        }
-        EMPP_NOEXCEPT;
-        {
-            T::is_tc()
-        }
-        EMPP_NOEXCEPT->std::same_as<bool>;
-        {
-            T::clear_ht()
-        }
-        EMPP_NOEXCEPT;
-        {
-            T::is_ht()
-        }
-        EMPP_NOEXCEPT->std::same_as<bool>;
-        {
-            T::enable_irq_tc()
-        }
-        EMPP_NOEXCEPT;
-        {
-            T::disable_irq_tc()
-        }
-        EMPP_NOEXCEPT;
-        {
-            T::enable_irq_ht()
-        }
-        EMPP_NOEXCEPT;
-        {
-            T::disable_irq_ht()
-        }
-        EMPP_NOEXCEPT;
-        {
-            T::get_length()
-        }
-        EMPP_NOEXCEPT->std::same_as<typename T::length_type>;
-    };
+concept DmaBackend = std::is_empty_v<T> /* 保证 0 开销 */
+                     && requires(uintptr_t addr1, uintptr_t addr2,
+                                 typename T::length_type length) {
+                            {
+                                T::configAddr(addr1, addr2, length)
+                            }
+                            EMPP_NOEXCEPT;
+                            {
+                                T::enable()
+                            }
+                            EMPP_NOEXCEPT;
+                            {
+                                T::disable()
+                            }
+                            EMPP_NOEXCEPT;
+                            {
+                                T::clear_all_flags()
+                            }
+                            EMPP_NOEXCEPT;
+                            {
+                                T::clear_tc()
+                            }
+                            EMPP_NOEXCEPT;
+                            {
+                                T::is_tc()
+                            }
+                            EMPP_NOEXCEPT->std::same_as<bool>;
+                            {
+                                T::clear_ht()
+                            }
+                            EMPP_NOEXCEPT;
+                            {
+                                T::is_ht()
+                            }
+                            EMPP_NOEXCEPT->std::same_as<bool>;
+                            {
+                                T::enable_irq_tc()
+                            }
+                            EMPP_NOEXCEPT;
+                            {
+                                T::disable_irq_tc()
+                            }
+                            EMPP_NOEXCEPT;
+                            {
+                                T::enable_irq_ht()
+                            }
+                            EMPP_NOEXCEPT;
+                            {
+                                T::disable_irq_ht()
+                            }
+                            EMPP_NOEXCEPT;
+                            {
+                                T::get_length()
+                            }
+                            EMPP_NOEXCEPT->std::convertible_to<size_t>;
+                        };
 } // namespace empp::platform::dma

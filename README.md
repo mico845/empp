@@ -252,34 +252,43 @@ void USART1_IRQHandler()
 }
 ```
 
+### 示例：UART TX DMA 发送
 
-### TODO ...
-
-DMA 发送 `"hello world!\r\n"`
+DMA 发送 `"[empp]:hello world!\r\n"` + DMA 传输完成中断
 
 ```c++
+/*
+ * Uart1 TX DMA (DMA2 Stream7)
+ * Mode: Normal
+ * Fifo: Disable
+ * DataWidth: P: Byte M: Byte
+ */
 using Uart1TxDma = dma::Dma2S7;
-using Com1       = uart::UartDma<1, Uart1TxDma, void>;
+
+using Com1 = uart::Uart<1, Uart1TxDma, void>;
 using Led  = gpio::PC13;
 
-constexpr uint8_t      uart_index = 20;
-EMPP_RAM_SRAM1 uint8_t uart_data[uart_index];
+inline volatile bool uart_flag = false;
+
+constexpr uint8_t      UART_TX_BYTES            = 24;
+EMPP_RAM_SRAM1 uint8_t uart_data[UART_TX_BYTES] = {};   /* Write through, read allocate，no write allocate */
 
 void Main()
 {
     delay::init();
-    constexpr char str[uart_index] = "hello world!\r\n";
-    for (size_t i = 0; i < uart_index; i++)
+    constexpr char str[UART_TX_BYTES] = "[empp]:hello world!\r\n";
+
+    for (size_t i = 0; i < UART_TX_BYTES; i++)
         uart_data[i] = str[i];
 
-    Com1::enable_dma_tx();
-    Com1::config_dma_tx(reinterpret_cast<uint32_t>(uart_data), uart_index);
-    Com1::enable_irq_dma_tx_tc();
-    Com1::start_dma_tx();
+    Com1::enable_dma_tx();                              // 👈 允许 UART 通过 DMA 发送数据
+    Com1::config_dma_tx(uart_data, UART_TX_BYTES);      // 👈 配置 DMA 传输地址与长度
+    Com1::enable_irq_dma_tx_tc();                       // 👈 使能 DMA TX 传输完成中断
+    Com1::start_dma_tx();                               // 👈 启动 TX 方向 DMA 传输
 
-    while (true) {
+    for (;;) {
         if (uart_flag) {
-            Com1::stop_dma_tx();
+            Com1::stop_dma_tx();                        // 👈 停止 TX 方向 DMA 传输
 
             uart_flag = false;
 
@@ -292,9 +301,56 @@ void Main()
 
 void DMA2_Stream7_IRQHandler()
 {
-    if (Uart1TxDma::is_tc()) {
+    if (Uart1TxDma::is_tc()) {      // 👈 传输完成中断
         uart_flag = true;
-        Uart1TxDma::clear_tc();
+        Uart1TxDma::clear_tc();     // 👈 手动清除传输完成标志位
+    }
+}
+```
+
+DMA 发送 `"[empp]:hello world!\r\n"` + Ring FIFO 环形缓存区
+
+```c++
+/*
+ * Uart1 TX DMA (DMA2 Stream7)
+ * Mode: Normal
+ * Fifo: Disable
+ * DataWidth: P: Byte M: Byte
+ */
+using Uart1TxDma = dma::Dma2S7;
+using Com1 = uart::Uart<1, Uart1TxDma, void>;
+
+constexpr uint8_t UART_TXFIFO_BYTES = 128;
+EMPP_RAM_AXI_SRAM empp::fifo<uint8_t, UART_TXFIFO_BYTES> uart_fifo; /* Write back, Read allocate，Write allocate */
+
+static void send_data()
+{
+    size_t len = 0;
+    while ((len = uart_fifo.linear_read_length()) > 0)  /* 👈 FIFO 获取线性可读数据长度 */
+    {
+        const auto data =
+            uart_fifo.linear_read_ptr();                // 👈 FIFO 获取线性可读数据指针
+
+        Com1::config_dma_tx(data, len);                 // 👈 配置 DMA 传输地址与长度
+        Com1::start_dma_tx();                           // 👈 启动 TX 方向 DMA 传输
+
+        uart_fifo.skip(len);                            // 👈 FIFO 跳过已读数据
+    }
+}
+
+void Main()
+{
+    constexpr uint8_t str[] = "[empp]:hello world!\r\n";
+
+    uart_fifo.write(str, sizeof(str));
+    cache::clean_obj<empp::fifo<uint8_t, UART_TXFIFO_BYTES>>(uart_fifo); // 👈 clean DCache
+
+    Com1::enable_dma_tx(); // 👈 允许 UART 通过 DMA 发送数据
+    
+    send_data();
+
+    for (;;) {
+        __NOP();
     }
 }
 ```

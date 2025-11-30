@@ -1,7 +1,5 @@
-// Irq.cpp
 #include "stm32h7xx_it.h"
 
-#include "board.hpp"
 #include "common_inc.h"
 
 using namespace board;
@@ -51,8 +49,8 @@ void SysTick_Handler() { /* something */ }
 
 void DMA2_Stream7_IRQHandler()
 {
-    if (Uart1TxDma::is_tc()) {
+    if (Uart1TxDma::is_tc()) {  // 👈 传输完成中断
         uart_flag = true;
-        Uart1TxDma::clear_tc();
+        Uart1TxDma::clear_tc(); // 👈 手动清除传输完成标志位
     }
 }
