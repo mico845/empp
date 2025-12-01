@@ -1,22 +1,24 @@
 // rgb_3gpio.hpp
 #pragma once
-#include "rgb_3gpio_concept.hpp"
+
 #include "empp/type.hpp"
+#include "empp/define.hpp"
+#include "platform/gpio/gpio_concept.hpp"
 
 namespace empp::componentBase::rgb_3gpio {
 
-enum class RGBPolarity {
+enum class RGBPolarity : bool {
     CommonCathode, // 共阴，写 1 = 亮
     CommonAnode    // 共阳，写 0 = 亮
 };
 
-enum class RGBColorId : uint8_t {
+enum class RGBColor : uint8_t {
     Off = 0,
     Red,
     Green,
     Blue,
     Cyan,
-    pinkishRed,
+    PinkishRed,
     Yellow,
     White,
 };
@@ -28,65 +30,85 @@ struct RGBLogicalColor
     bool b;
 };
 
-template <Pinx R, Pinx G, Pinx B, RGBPolarity Pol>
+template <platform::gpio::GpioBackend R, platform::gpio::GpioBackend G,
+          platform::gpio::GpioBackend B, RGBPolarity Pol>
 class RGB
 {
 public:
-    EMPP_ALWAYS_INLINE static void set(const bool r, const bool g,
-                                       const bool b) noexcept
+    EMPP_STATIC_INLINE void set(const bool r, const bool g, const bool b) EMPP_NOEXCEPT
     {
         set_channel<R>(r);
         set_channel<G>(g);
         set_channel<B>(b);
     }
 
-    EMPP_ALWAYS_INLINE static void off() noexcept { set(false, false, false); }
+    EMPP_STATIC_INLINE void off() EMPP_NOEXCEPT { set(false, false, false); }
 
-    EMPP_ALWAYS_INLINE static void red() noexcept { set(RGBColorId::Red); }
+    EMPP_STATIC_INLINE void red() EMPP_NOEXCEPT { set(RGBColor::Red); }
 
-    EMPP_ALWAYS_INLINE static void green() noexcept { set(RGBColorId::Green); }
+    EMPP_STATIC_INLINE void green() EMPP_NOEXCEPT { set(RGBColor::Green); }
 
-    EMPP_ALWAYS_INLINE static void blue() noexcept { set(RGBColorId::Blue); }
+    EMPP_STATIC_INLINE void blue() EMPP_NOEXCEPT { set(RGBColor::Blue); }
 
-    EMPP_ALWAYS_INLINE static void cyan() noexcept { set(RGBColorId::Cyan); }
+    EMPP_STATIC_INLINE void cyan() EMPP_NOEXCEPT { set(RGBColor::Cyan); }
 
-    EMPP_ALWAYS_INLINE static void pinkishRed() noexcept
+    EMPP_STATIC_INLINE void pinkishRed() EMPP_NOEXCEPT { set(RGBColor::PinkishRed); }
+
+    EMPP_STATIC_INLINE void yellow() EMPP_NOEXCEPT { set(RGBColor::Yellow); }
+
+    EMPP_STATIC_INLINE void white() EMPP_NOEXCEPT { set(RGBColor::White); }
+
+    EMPP_STATIC_INLINE void set(const RGBColor color) EMPP_NOEXCEPT
     {
-        set(RGBColorId::pinkishRed);
+        const auto [r, g, b] = color_from_id(color);
+        set(r, g, b);
     }
-
-    EMPP_ALWAYS_INLINE static void yellow() noexcept
-    {
-        set(RGBColorId::Yellow);
-    }
-
-    EMPP_ALWAYS_INLINE static void white() noexcept { set(RGBColorId::White); }
 
 private:
-    static constexpr RGBLogicalColor kColorTable[] = {
-        /* Off     */ {false, false, false},
-        /* Red     */ {true, false, false},
-        /* Green   */ {false, true, false},
-        /* Blue    */ {false, false, true},
-        /* Cyan    */ {false, true, true},
-        /* pinkishRed */ {true, false, true},
-        /* Yellow  */ {true, true, false},
-        /* White   */ {true, true, true},
-    };
-
-    template <Pinx P>
-    EMPP_ALWAYS_INLINE static void set_channel(const bool logical_on) noexcept
+    EMPP_STATIC_INLINE constexpr RGBLogicalColor color_from_id(const RGBColor color) EMPP_NOEXCEPT
     {
-        constexpr bool active_high = (Pol == RGBPolarity::CommonCathode);
-        (active_high == logical_on) ? P::set() : P::reset();
+        switch (color) {
+            case RGBColor::Off:
+                return {false, false, false};
+            case RGBColor::Red:
+                return {true, false, false};
+            case RGBColor::Green:
+                return {false, true, false};
+            case RGBColor::Blue:
+                return {false, false, true};
+            case RGBColor::Cyan:
+                return {false, true, true};
+            case RGBColor::PinkishRed:
+                return {true, false, true};
+            case RGBColor::Yellow:
+                return {true, true, false};
+            case RGBColor::White:
+                return {true, true, true};
+        }
+
+        return {false, false, false};
     }
 
-    EMPP_ALWAYS_INLINE static void set(RGBColorId color_id) noexcept
+    template <platform::gpio::GpioBackend P>
+    EMPP_STATIC_INLINE void set_channel(const bool logical_on) EMPP_NOEXCEPT
     {
-        const auto idx = static_cast<uint8_t>(color_id);
-
-        const auto &[r, g, b] = kColorTable[idx];
-        set(r, g, b);
+        constexpr bool active_high = (Pol == RGBPolarity::CommonCathode);
+        if constexpr (active_high) {
+            if (logical_on) {
+                P::set();
+            }
+            else {
+                P::reset();
+            }
+        }
+        else {
+            if (logical_on) {
+                P::reset();
+            }
+            else {
+                P::set();
+            }
+        }
     }
 };
 } // namespace empp::componentBase::rgb_3gpio
