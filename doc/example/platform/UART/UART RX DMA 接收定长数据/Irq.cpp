@@ -49,10 +49,9 @@ void SysTick_Handler() { /* something */ }
 
 void DMA2_Stream6_IRQHandler()
 {
-    if (Uart1RxDma::is_tc()) {
+    if (Uart1RxDma::is_tc()) {                                      // 👈 传输完成中断
         uart_flag = true;
-        SCB_InvalidateDCache();
-        Uart1RxDma::clear_tc();
+        cache::invalidate_buf(uart_data, UART_RX_BYTES);      // 👈 invalidate Cache，保证读取到最新数据
+        Uart1RxDma::clear_tc();                                     // 👈 手动清除传输完成标志位
     }
 }
-void DMA2_Stream7_IRQHandler() {}

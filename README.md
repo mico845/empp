@@ -1,6 +1,6 @@
 # EMPP — Embedded Platform with C++
 
-EMPP（Embedded Platform with C++） 是一款基于 STM32 的轻量级、追求高性能现代 C++ 嵌入式框架。
+EMPP（Embedded Platform with C++） 是一款基于 STM32 **追求最高性能和最低开销** 的 现代 C++ 轻量级嵌入式框架。
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/mico845/empp/main/doc/icon/empp.png" width="280">
@@ -8,9 +8,10 @@ EMPP（Embedded Platform with C++） 是一款基于 STM32 的轻量级、追求
 
 核心理念：
 
-- 🧵 低抽象开销：尽可能让功能均可在编译期内联展开
+- 🧵 低抽象开销：尽可能所有功能均可在编译期内联展开
 - ⚡ 接近裸寄存器的执行性能
 - 🧑‍💻 C++20 风格的嵌入式编程
+- 📕 Only-Header 仅头文件库，轻量
 
 ## 目前支持
 
@@ -22,6 +23,7 @@ EMPP（Embedded Platform with C++） 是一款基于 STM32 的轻量级、追求
 | `delay`  | ✅                       | ?    |
 | `uart`   | ✅                       | ?    |
 | `dma`    | ✅                       | ?    |
+| `cache`  | ✅                       | ?    |
 | `spi`    | ING...                  | ?    |
 | `iic`    | 计划中                     | ?    |
 
@@ -355,31 +357,43 @@ void Main()
 }
 ```
 
-DMA 接收定长数据
+### 示例：UART RX DMA 接收
+
+DMA 接收定长数据 + DMA 传输完成中断
 
 ```c++
+/*
+ * Uart1 RX DMA (DMA2 Stream6)
+ * Mode: Normal
+ * Fifo: Disable
+ * DataWidth: P: Byte M: Byte
+ */
 using Uart1RxDma = dma::Dma2S6;
-using Com1       = uart::UartDma<1, void, Uart1RxDma>;
+
+using Com1 = uart::Uart<1, void, Uart1RxDma>;
 using Led  = gpio::PC13;
 
-constexpr uint8_t      uart_index = 6;
-EMPP_RAM_SRAM1 uint8_t uart_data[uart_index];
+inline volatile bool uart_flag = false;
 
-EMPP_RAM_ITCM void Main()
+constexpr uint8_t UART_RX_BYTES = 6;
+
+EMPP_RAM_SRAM1 inline uint8_t uart_data[UART_RX_BYTES] =
+    {}; /* Write through, read allocate，no write allocate */
+
+void Main()
 {
-    Com1::enable_dma_rx();
-    Com1::config_dma_rx(uart_data, uart_index);
-    Com1::enable_irq_dma_rx_tc();
-    Com1::start_dma_rx();
+    Com1::enable_dma_rx();                                  // 👈 允许 UART 通过 DMA 接收数据
+    Com1::config_dma_rx(uart_data, UART_RX_BYTES);          // 👈 配置 DMA 传输地址与长度
+    Com1::enable_irq_dma_rx_tc();                           // 👈 使能 DMA RX 传输完成中断
+    Com1::start_dma_rx();                                   // 👈 启动 RX 方向 DMA 传输
 
     while (true) {
         if (uart_flag) {
-            Com1::stop_dma_rx();
+            Com1::stop_dma_rx();                            // 👈 停止 RX 方向 DMA 传输
             uart_flag = false;
 
             Led::toggle();
-            for (const auto i : uart_data)
-                Com1::write(i);
+            Com1::print(uart_data, UART_RX_BYTES);
             delay::s(1);
 
             Com1::start_dma_rx();
@@ -389,15 +403,21 @@ EMPP_RAM_ITCM void Main()
 
 void DMA2_Stream6_IRQHandler()
 {
-    if (Uart1RxDma::is_tc()) {
+    if (Uart1RxDma::is_tc()) {                              // 👈 传输完成中断
         uart_flag = true;
-        SCB_InvalidateDCache();
-        Uart1RxDma::clear_tc();
+        cache::invalidate_buf(uart_data, UART_RX_BYTES);    // 👈 invalidate Cache，保证读取到最新数据
+        Uart1RxDma::clear_tc();                             // 👈 手动清除传输完成标志位
     }
 }
 ```
 
-**更多例程** 👉 [example](https://github.com/mico845/empp/tree/main/doc/example)
+DMA 接收不定长数据（DMA传输半完成中断 + DMA传输完成中断 + IDLE 空闲中断）
+
+### 更多示例
+
+👉 [empp/doc/example](https://github.com/mico845/empp/tree/main/doc/example)
+
+---
 
 ## 📁 推荐目录结构
 
