@@ -1,0 +1,19 @@
+// common_inc.h
+#pragma once
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+/*---------------------------- C Scope ---------------------------*/
+
+[[noreturn]] void Main();
+
+#ifdef __cplusplus
+}
+
+/*---------------------------- C++ Scope ---------------------------*/
+
+    #include "board.hpp"
+
+inline volatile uint8_t ch = 0; // 公共变量
+#endif

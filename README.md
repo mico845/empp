@@ -1,6 +1,6 @@
 # EMPP — Embedded Platform with C++
 
-EMPP（Embedded Platform with C++） 是一款基于 STM32 的轻量级、追求高性能现代 C++ 嵌入式框架。
+EMPP（Embedded Platform with C++） 是一款基于 STM32 **追求最高性能和最低开销** 的 现代 C++ 轻量级嵌入式框架。
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/mico845/empp/main/doc/icon/empp.png" width="280">
@@ -8,9 +8,10 @@ EMPP（Embedded Platform with C++） 是一款基于 STM32 的轻量级、追求
 
 核心理念：
 
-- 🧵 低抽象开销：尽可能让功能均可在编译期内联展开
+- 🧵 低抽象开销：尽可能所有功能均可在编译期内联展开
 - ⚡ 接近裸寄存器的执行性能
 - 🧑‍💻 C++20 风格的嵌入式编程
+- 📕 Only-Header 仅头文件库，轻量
 
 ## 目前支持
 
@@ -22,6 +23,7 @@ EMPP（Embedded Platform with C++） 是一款基于 STM32 的轻量级、追求
 | `delay`  | ✅                       | ?    |
 | `uart`   | ✅                       | ?    |
 | `dma`    | ✅                       | ?    |
+| `cache`  | ✅                       | ?    |
 | `spi`    | ING...                  | ?    |
 | `iic`    | 计划中                     | ?    |
 
@@ -75,39 +77,114 @@ EMPP（Embedded Platform with C++） 是一款基于 STM32 的轻量级、追求
 
 ## 🧪示例
 
-### 示例：GPIO + Delay
+**这里均省略了 STM32CubeMX 的初始化代码**
 
-闪烁点灯
+**假设已经正确配置好时钟和外设**
+
+### 示例：点灯程序
 
 ```c++
-using Led = gpio::PC13;
+using Led  = gpio::PC13;         
+using Com1 = uart::U1;
 
-void Main()
-{
-    delay::init();
-    while (true) {
-        Led::toggle();
-        delay::ms(500);
-    }
+delay::init();                  // 👈 初始化延时（DWT / SysTick）
+
+Com1::println("LED blink start");
+
+while (true) {
+  Led::toggle();              // 👈 翻转 LED 状态
+  delay::ms(500);             // 👈 延时 500ms
 }
 ```
 
-### 示例：UART
+### 示例：GPIO 操作
 
-非中断发送 `"hello world\r\n"`
+输出高低电平、反转电平、读取电平状态：
+
+```c++
+using namespace empp::stm32h7xx::gpio;
+
+PC0::reset();                   // 👈 输出低电平
+PC0::set();                     // 👈 输出高电平
+PC0::toggle();                  // 👈 反转一次电平
+const bool level = PC1::read(); // 👈 读取当前电平状态
+```
+
+### 示例：Delay 阻塞延时
+
+阻塞延时 100us / 10ms / 1s
+
+```c++
+// - 若 EMPP_DELAY_USE_DWT = 1, EMPP_DELAY_USE_SYSTICK = 0, 则使用 DWT
+// 作延时；
+// - 若 EMPP_DELAY_USE_SYSTICK = 1, EMPP_DELAY_USE_DWT = 0, 则使用 SysTick
+// 作延时；
+// - 内部会根据 EMPP_SYSCLK_MHZ 设置 ticks_per_us。
+delay::init(); // 👈 初始化延时（DWT / SysTick）
+
+
+
+delay::us(100);   // 👈 延时 100 微秒
+delay::ms(10);    // 👈 延时 10 毫秒
+delay::s(1);      // 👈 延时 1 秒（内部为 1000 * ms(1)）
+```
+
+### 示例：DWT 测量运行时间
+
+使用 DWT 测量代码运行时间
+
+```c++
+delay::init();                              // 👈 初始化 (务必使用 DWT 即 DWT EMPP_DELAY_USE_DWT = 1)
+
+const uint32_t time_us = delay::measure_us([] {
+  /* 测量运行开始时间 👈 */
+  gpio::PD12::toggle();
+  delay::us(1);
+  gpio::PD12::toggle();
+  /* 测量运行结束时间 👈 */
+});
+
+Com1::println("time:", time_us, "us");      // 👈 打印测量结果 time_us
+```
+
+### 示例：UART 阻塞发送
+
+发送字符串、拼接字符串、无符号类型、有符号类型，逐 Byte 发送
 
 ```c++
 using Com1 = uart::U1;
 
-void Main()
-{
-    delay::init();
-    while (true) {
-        Com1::println("hello world");
-        delay::s(1);
-    }
+uint32_t num_32b = 0XF0F0F0F0U;
+int      num_neg = -1;
+char     str1[]  = "welcome to empp! ";
+char     str2[]  = "this is uart test. ";
+char     str3[]  = "let's go!";
+ 
+Com1::println("hello, empp");           // 👈 传输字符串
+Com1::println(str1, str2, str3);        // 👈 传输拼接字符串
+Com1::println("num(32b) = ", num_32b);  // 👈 传输无符号类型
+Com1::println("num(int) = ", num_neg);  // 👈 传输有符号类型
+
+for (uint8_t buf[3] = {0xAB, 0xCD, 0xEF}; auto c : buf)
+     Com1::write(c);                     // 👈 逐 Byte 发送
+```
+
+### 示例：UART 轮询接收
+
+轮询接收——如果接收为 `'t'` 则反转 LED 电平
+
+```c++
+using Com1 = uart::U1;
+using Led  = gpio::PC13;
+
+while (true) {
+  if (const auto r = Com1::read(); r == 't') {    /* 👈 Com1::read() 读取一个 uint8_t */
+      Led::toggle();
+  }
 }
 ```
+
+### 示例：UART TX 中断发送
 
 中断发送 `"hello\r\n"`
 
@@ -116,9 +193,10 @@ using Com1 = uart::U1;
 
 void Main()
 {
-    Com1::enable_irq_tx();
+    Com1::enable_irq_tx();   // 👈 使能 UART tx 中断
 
-    while (true) {
+    for (;;) {
+        __NOP();
     }
 }
 
@@ -138,37 +216,81 @@ static void callback_tx()
 
 void USART1_IRQHandler()
 {
-    if (Com1::is_tc()) {
-        callback_tx();
+    if (Com1::is_tc()) {    // 👈 检测是否是 tx 完成中断
+        callback_tx();      // 跳转 callback_tx 执行
     }
 }
 ```
 
-DMA 发送 `"hello world!\r\n"`
+### 示例：UART RX 中断读取
+
+中断读取——如果是 `'t'` 则反转 LED 电平
 
 ```c++
-using Uart1TxDma = dma::Dma2S7;
-using Com1       = uart::UartDma<1, Uart1TxDma, void>;
+using Com1 = uart::U1;
 using Led  = gpio::PC13;
 
-constexpr uint8_t      uart_index = 20;
-EMPP_RAM_SRAM1 uint8_t uart_data[uart_index];
+inline volatile uint8_t ch = 0;
+
+void Main()
+{
+    Com1::enable_irq_rx(); // 👈 使能 UART rx 中断
+
+    for (;;) {
+        if (ch == 't') {
+            Led::toggle();
+            ch = 0;
+        }
+    }
+}
+
+static void callback_rx() { ch = Com1::read(); }
+
+void USART1_IRQHandler()
+{
+    if (Com1::is_rx()) { // 👈 检测是否是 rx 完成中断
+        callback_rx();   // 跳转 callback_rx 执行
+    }
+}
+```
+
+### 示例：UART TX DMA 发送
+
+DMA 发送 `"[empp]:hello world!\r\n"` + DMA 传输完成中断
+
+```c++
+/*
+ * Uart1 TX DMA (DMA2 Stream7)
+ * Mode: Normal
+ * Fifo: Disable
+ * DataWidth: P: Byte M: Byte
+ */
+using Uart1TxDma = dma::Dma2S7;
+
+using Com1 = uart::Uart<1, Uart1TxDma, void>;
+using Led  = gpio::PC13;
+
+inline volatile bool uart_flag = false;
+
+constexpr uint8_t      UART_TX_BYTES            = 24;
+EMPP_RAM_SRAM1 uint8_t uart_data[UART_TX_BYTES] = {};   /* Write through, read allocate，no write allocate */
 
 void Main()
 {
     delay::init();
-    constexpr char str[uart_index] = "hello world!\r\n";
-    for (size_t i = 0; i < uart_index; i++)
+    constexpr char str[UART_TX_BYTES] = "[empp]:hello world!\r\n";
+
+    for (size_t i = 0; i < UART_TX_BYTES; i++)
         uart_data[i] = str[i];
 
-    Com1::enable_dma_tx();
-    Com1::config_dma_tx(reinterpret_cast<uint32_t>(uart_data), uart_index);
-    Com1::enable_irq_dma_tx_tc();
-    Com1::start_dma_tx();
+    Com1::enable_dma_tx();                              // 👈 允许 UART 通过 DMA 发送数据
+    Com1::config_dma_tx(uart_data, UART_TX_BYTES);      // 👈 配置 DMA 传输地址与长度
+    Com1::enable_irq_dma_tx_tc();                       // 👈 使能 DMA TX 传输完成中断
+    Com1::start_dma_tx();                               // 👈 启动 TX 方向 DMA 传输
 
-    while (true) {
+    for (;;) {
         if (uart_flag) {
-            Com1::stop_dma_tx();
+            Com1::stop_dma_tx();                        // 👈 停止 TX 方向 DMA 传输
 
             uart_flag = false;
 
@@ -181,83 +303,97 @@ void Main()
 
 void DMA2_Stream7_IRQHandler()
 {
-    if (Uart1TxDma::is_tc()) {
+    if (Uart1TxDma::is_tc()) {      // 👈 传输完成中断
         uart_flag = true;
-        Uart1TxDma::clear_tc();
+        Uart1TxDma::clear_tc();     // 👈 手动清除传输完成标志位
     }
 }
 ```
 
-非中断接收 如果是 `'t'` 则反转 LED 电平
+DMA 发送 `"[empp]:hello world!\r\n"` + Ring FIFO 环形缓存区
 
 ```c++
-using Com1 = uart::U1;
-using Led  = gpio::PC13;
+/*
+ * Uart1 TX DMA (DMA2 Stream7)
+ * Mode: Normal
+ * Fifo: Disable
+ * DataWidth: P: Byte M: Byte
+ */
+using Uart1TxDma = dma::Dma2S7;
+using Com1 = uart::Uart<1, Uart1TxDma, void>;
+
+constexpr uint8_t UART_TXFIFO_BYTES = 128;
+EMPP_RAM_AXI_SRAM empp::fifo<uint8_t, UART_TXFIFO_BYTES> uart_fifo; /* Write back, Read allocate，Write allocate */
+
+static void send_data()
+{
+    size_t len = 0;
+    while ((len = uart_fifo.linear_read_length()) > 0)  /* 👈 FIFO 获取线性可读数据长度 */
+    {
+        const auto data =
+            uart_fifo.linear_read_ptr();                // 👈 FIFO 获取线性可读数据指针
+
+        Com1::config_dma_tx(data, len);                 // 👈 配置 DMA 传输地址与长度
+        Com1::start_dma_tx();                           // 👈 启动 TX 方向 DMA 传输
+
+        uart_fifo.skip(len);                            // 👈 FIFO 跳过已读数据
+    }
+}
 
 void Main()
 {
-    while (true) {
-        if (const auto r = Com1::read(); r == 't') {
-            Led::toggle();
-        }
+    constexpr uint8_t str[] = "[empp]:hello world!\r\n";
+
+    uart_fifo.write(str, sizeof(str));
+    cache::clean_obj<empp::fifo<uint8_t, UART_TXFIFO_BYTES>>(uart_fifo); // 👈 clean DCache
+
+    Com1::enable_dma_tx(); // 👈 允许 UART 通过 DMA 发送数据
+    
+    send_data();
+
+    for (;;) {
+        __NOP();
     }
 }
 ```
 
-中断接收 如果是 `'t'` 则反转 LED 电平
+### 示例：UART RX DMA 接收
+
+DMA 接收定长数据 + DMA 传输完成中断
 
 ```c++
-using Com1 = uart::U1;
-using Led  = gpio::PC13;
-
-
-void Main()
-{
-    Com1::enable_irq_rx();
-
-    while (true) {
-        if (ch == 't') {
-            Led::toggle();
-            ch = 0;
-        }
-    }
-}
-
-static void callback_rx() { ch = Com1::read(); }
-
-void USART1_IRQHandler()
-{
-    if (Com1::is_rc()) {
-        callback_rx();
-    }
-}
-```
-
-DMA 接收定长数据
-
-```c++
+/*
+ * Uart1 RX DMA (DMA2 Stream6)
+ * Mode: Normal
+ * Fifo: Disable
+ * DataWidth: P: Byte M: Byte
+ */
 using Uart1RxDma = dma::Dma2S6;
-using Com1       = uart::UartDma<1, void, Uart1RxDma>;
+
+using Com1 = uart::Uart<1, void, Uart1RxDma>;
 using Led  = gpio::PC13;
 
-constexpr uint8_t      uart_index = 6;
-EMPP_RAM_SRAM1 uint8_t uart_data[uart_index];
+inline volatile bool uart_flag = false;
 
-EMPP_RAM_ITCM void Main()
+constexpr uint8_t UART_RX_BYTES = 6;
+
+EMPP_RAM_SRAM1 inline uint8_t uart_data[UART_RX_BYTES] =
+    {}; /* Write through, read allocate，no write allocate */
+
+void Main()
 {
-    Com1::enable_dma_rx();
-    Com1::config_dma_rx(uart_data, uart_index);
-    Com1::enable_irq_dma_rx_tc();
-    Com1::start_dma_rx();
+    Com1::enable_dma_rx();                                  // 👈 允许 UART 通过 DMA 接收数据
+    Com1::config_dma_rx(uart_data, UART_RX_BYTES);          // 👈 配置 DMA 传输地址与长度
+    Com1::enable_irq_dma_rx_tc();                           // 👈 使能 DMA RX 传输完成中断
+    Com1::start_dma_rx();                                   // 👈 启动 RX 方向 DMA 传输
 
     while (true) {
         if (uart_flag) {
-            Com1::stop_dma_rx();
+            Com1::stop_dma_rx();                            // 👈 停止 RX 方向 DMA 传输
             uart_flag = false;
 
             Led::toggle();
-            for (const auto i : uart_data)
-                Com1::write(i);
+            Com1::print(uart_data, UART_RX_BYTES);
             delay::s(1);
 
             Com1::start_dma_rx();
@@ -267,15 +403,154 @@ EMPP_RAM_ITCM void Main()
 
 void DMA2_Stream6_IRQHandler()
 {
-    if (Uart1RxDma::is_tc()) {
+    if (Uart1RxDma::is_tc()) {                              // 👈 传输完成中断
         uart_flag = true;
-        SCB_InvalidateDCache();
+        cache::invalidate_buf(uart_data, UART_RX_BYTES);    // 👈 invalidate Cache，保证读取到最新数据
+        Uart1RxDma::clear_tc();                             // 👈 手动清除传输完成标志位
+    }
+}
+```
+
+DMA 接收不定长数据（DMA传输半完成中断 + DMA传输完成中断 + IDLE 空闲中断）
+
+```c++
+/*
+ * Uart1 RX DMA (DMA2 Stream6)
+ * Mode: Circular
+ * Fifo: Disable
+ * DataWidth: P: Byte M: Byte
+ */
+using Uart1RxDma = dma::Dma2S6;
+
+using Com1 = uart::Uart<1, void, Uart1RxDma>;
+using Led  = gpio::PC13;
+
+inline constexpr uint16_t UART_DMA_RX_BUFFER_SIZE = 8;
+inline constexpr uint16_t UART_DMA_RX_FIFO_SIZE   = 128;
+
+/* Write through, read allocate，no write allocate */
+EMPP_RAM_SRAM1 inline uint8_t bufferRxDma[UART_DMA_RX_BUFFER_SIZE] = {};
+
+inline empp::fifo<uint8_t, UART_DMA_RX_FIFO_SIZE> fifoRxDma; // 👈 可选：环形缓冲区
+
+// 有新数据到来（HT/TC/IDLE 任一触发）
+inline volatile bool g_rx_data_ready = false;
+
+// 一帧的结束（触发过 IDLE）
+inline volatile bool g_rx_idle_event = false;
+
+uint8_t fifo_buf[UART_DMA_RX_FIFO_SIZE];
+
+static void process_rx_data() noexcept
+{
+
+    const auto len = fifoRxDma.available_read();
+    if (len == 0U) {
+        return;
+    }
+
+    fifoRxDma.read(fifo_buf, len);
+    Com1::print("\r\n$[empp Rx]:");
+    Com1::print(fifo_buf, len);
+    Com1::print("\r\n");
+}
+
+EMPP_RAM_ITCM void Main()
+{
+    delay::init();
+
+    Com1::enable_dma_rx();
+    Com1::enable_irq_dma_rx_ht(); // 👈 使能 DMA RX 传输半完成中断
+    Com1::enable_irq_dma_rx_tc(); // 👈 使能 DMA RX 传输完成中断
+
+    Com1::config_dma_rx(bufferRxDma, UART_DMA_RX_BUFFER_SIZE);
+    Com1::start_dma_rx();
+
+    delay::ms(20);
+    Com1::clear_idle();      // 👈 UART初始化后会产生空闲帧，延时后再清除IDLE标志（可选）
+    Com1::enable_irq_idle(); // 👈 开 RX IDLE 中断
+
+    /*
+     * - 数据量未达到半满，触发空闲中断
+     * - 数据量达到半满，未达到满溢，先触发半满中断，后触发空闲中断
+     * - 数据量刚好达到满溢，先触发半满中断，后触发满溢中断
+     * - 数据量大于缓冲区长度，DMA循环覆盖溢出的字节
+     */
+
+    for (;;) {
+        if (g_rx_idle_event) {
+            g_rx_data_ready = false;
+            g_rx_idle_event = false;
+
+            process_rx_data(); // 处理这一次“帧结束”之前的全部数据
+        }
+
+        // 预留扩展点：如果未来希望“流式处理”，可以在此使用 g_rx_data_ready
+        if (g_rx_data_ready) {
+            /* something */
+        }
+    }
+}
+
+static volatile uint16_t g_rx_write_pos = 0U;
+
+EMPP_STATIC_INLINE void uart1_rx_update_from_dma() noexcept
+{
+    const uint16_t prev = g_rx_write_pos;
+
+    const auto     dma_remaining = Uart1RxDma::get_length(); // 👈 获取 DMA 剩余传输长度
+    const uint16_t curr          = UART_DMA_RX_BUFFER_SIZE - dma_remaining;
+
+    if (curr == prev) {
+        return; // 没有新数据
+    }
+
+    if (curr > prev) {
+#if defined(__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U) && (EMPP_USE_CACHE == 1U)
+        cache::invalidate_ptr(&bufferRxDma[prev], curr - prev);
+#endif
+        fifoRxDma.write(&bufferRxDma[prev], curr - prev);
+    }
+    else {
+#if defined(__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U) && (EMPP_USE_CACHE == 1U)
+        cache::invalidate_ptr(&bufferRxDma[prev], UART_DMA_RX_BUFFER_SIZE - prev);
+        cache::invalidate_ptr(&bufferRxDma[0], curr);
+#endif
+        fifoRxDma.write(&bufferRxDma[prev], UART_DMA_RX_BUFFER_SIZE - prev);
+        fifoRxDma.write(&bufferRxDma[0], curr);
+    }
+
+    g_rx_write_pos  = curr;
+    g_rx_data_ready = true;
+}
+
+void USART1_IRQHandler()
+{
+    if (Com1::is_idle()) {
+        uart1_rx_update_from_dma();
+        g_rx_idle_event = true;
+        Com1::clear_idle();
+    }
+}
+
+void DMA2_Stream6_IRQHandler()
+{
+    if (Uart1RxDma::is_ht()) {
+        uart1_rx_update_from_dma();
+        Uart1RxDma::clear_ht();
+    }
+    if (Uart1RxDma::is_tc()) {
+        uart1_rx_update_from_dma();
         Uart1RxDma::clear_tc();
     }
 }
 ```
 
-**更多例程** 👉 [example](https://github.com/mico845/empp/tree/main/doc/example)
+### 更多示例
+
+👉 [empp/doc/example](https://github.com/mico845/empp/tree/main/doc/example)
+
+---
 
 ## 📁 推荐目录结构
 

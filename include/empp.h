@@ -19,11 +19,12 @@ extern "C" {
         #include "interface/platform/uart/stm32/uart_if_stm32h7xx.hpp"
         #include "interface/platform/spi/stm32/spi_if_stm32h7xx.hpp"
         #include "interface/platform/dma/stm32/dma_if_stm32h7xx.hpp"
+        #include "interface/platform/cache/stm32/cache_if_stm32h7xx.hpp"
     #else
 
     #endif
 
-    #if EMPP_COMPONENTS_ON
+    #if EMPP_USE_COMPONENTS
 
         #include "interface/components/rgb_3gpio_if.hpp"
 

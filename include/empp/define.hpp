@@ -15,7 +15,29 @@
 #if defined(__GNUC__) || defined(__clang__)
     #define EMPP_WEAK __attribute__((weak))
 #else
-    #define EMPP_WEAK __attribute__((weak))
+    #define EMPP_WEAK
+#endif
+
+#if defined(__GNUC__) || defined(__clang__)
+    #define EMPP_STATIC static
+#else
+    #define EMPP_STATIC
+#endif
+
+#if defined(EMPP_ALWAYS_INLINE) && defined(EMPP_STATIC)
+    #define EMPP_STATIC_INLINE EMPP_STATIC EMPP_ALWAYS_INLINE
+#endif
+
+#if defined(__GNUC__) || defined(__clang__)
+    #define EMPP_NOEXCEPT noexcept
+#else
+    #define EMPP_NOEXCEPT
+#endif
+
+#if defined(__GNUC__) || defined(__clang__)
+    #define EMPP_CACHE_ALIGN __attribute__((aligned(32)))
+#else
+    #define EMPP_CACHE_ALIGN
 #endif
 
 // =================== 内存区域选择宏 ===================

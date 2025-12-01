@@ -1,6 +1,7 @@
 // gpio_id.hpp
 #pragma once
-#include "empp/driver.hpp"
+
+#include "empp/type.hpp"
 
 namespace empp::platform::gpio {
 
