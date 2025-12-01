@@ -1,11 +1,17 @@
 // st7789vw.hpp
 #pragma once
 
-#include "st7789vw_concept.hpp"
+#include "empp/type.hpp"
+#include "empp/define.hpp"
+
+#include "platform/gpio/gpio_concept.hpp"
+#include "platform/delay/delay_concept.hpp"
+#include "platform/spi/spi_concept.hpp"
 
 namespace empp::componentBase::lcd::st7789vw {
 
-template <Spix Spi, Pinx PinDC, Pinx PinBL, Delayx Delay>
+template <platform::spi::SpiBackend Spi, platform::gpio::GpioBackend PinDC,
+          platform::gpio::GpioBackend PinBL, platform::delay::DelayBackend Delay>
 class ST7789VW
 {
 public:
@@ -23,7 +29,7 @@ public:
     static constexpr uint16_t x_offset = 0;
     static constexpr uint16_t y_offset = 20;
 
-    EMPP_ALWAYS_INLINE static void init() noexcept
+    EMPP_STATIC_INLINE void init() EMPP_NOEXCEPT
     {
         // 屏幕刚完成复位时（包括上电复位），需要等待至少5ms才能发送指令
         Delay::ms(10);
@@ -123,8 +129,7 @@ public:
     }
 
     // 全屏刷成一个 RGB565 颜色
-    EMPP_ALWAYS_INLINE static void
-    fill_screen_rgb565(const uint16_t color) noexcept
+    EMPP_STATIC_INLINE void fill_screen_rgb565(const uint16_t color) EMPP_NOEXCEPT
     {
         set_address_window(0, 0, width - 1, height - 1);
 
@@ -140,37 +145,37 @@ public:
         uint32_t remain = width * height;
         while (remain > 0) {
             uint16_t n = (remain > BATCH) ? BATCH : remain;
-            Spi::write16(buf, n);
+            Spi::write(buf, n);
             remain -= n;
         }
     }
 
 private:
     // 写命令：DC=0
-    EMPP_ALWAYS_INLINE static void write_command(uint8_t cmd) noexcept
+    EMPP_STATIC_INLINE void write_command(uint8_t cmd) EMPP_NOEXCEPT
     {
         Spi::set_dataWidth(8);
         PinDC::reset();
-        Spi::write8(cmd);
+        Spi::template write<uint8_t>(cmd);
     }
 
     // 写数据：DC=1
-    EMPP_ALWAYS_INLINE static void write_data8(uint8_t data) noexcept
+    EMPP_STATIC_INLINE void write_data8(uint8_t data) EMPP_NOEXCEPT
     {
         Spi::set_dataWidth(8);
         PinDC::set();
-        Spi::write8(data);
+        Spi::template write<uint8_t>(data);
     }
-    EMPP_ALWAYS_INLINE static void write_data16(uint16_t data) noexcept
+
+    EMPP_STATIC_INLINE void write_data16(uint16_t data) EMPP_NOEXCEPT
     {
         PinDC::set();
-        Spi::write16(data);
+        Spi::template write<uint16_t>(data);
     }
 
     // 设置窗口：2Ah/2Bh，然后 2Ch
-    EMPP_ALWAYS_INLINE
-    static void set_address_window(uint16_t x0, uint16_t y0, uint16_t x1,
-                                   uint16_t y1) noexcept
+    EMPP_STATIC_INLINE void set_address_window(uint16_t x0, uint16_t y0, uint16_t x1,
+                                               uint16_t y1) EMPP_NOEXCEPT
     {
         const auto xs = static_cast<uint16_t>(x0 + x_offset);
         const auto xe = static_cast<uint16_t>(x1 + x_offset);
@@ -181,15 +186,15 @@ private:
         write_command(0x2A);
         Spi::set_dataWidth(16);
         PinDC::set();
-        Spi::write16(xs);
-        Spi::write16(xe);
+        Spi::template write<uint16_t>(xs);
+        Spi::template write<uint16_t>(xe);
 
         // 行地址（Y）
         write_command(0x2B);
         Spi::set_dataWidth(16);
         PinDC::set();
-        Spi::write16(ys);
-        Spi::write16(ye);
+        Spi::template write<uint16_t>(ys);
+        Spi::template write<uint16_t>(ye);
 
         // 写 GRAM
         write_command(0x2C);
