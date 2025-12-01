@@ -413,6 +413,139 @@ void DMA2_Stream6_IRQHandler()
 
 DMA 接收不定长数据（DMA传输半完成中断 + DMA传输完成中断 + IDLE 空闲中断）
 
+```c++
+/*
+ * Uart1 RX DMA (DMA2 Stream6)
+ * Mode: Circular
+ * Fifo: Disable
+ * DataWidth: P: Byte M: Byte
+ */
+using Uart1RxDma = dma::Dma2S6;
+
+using Com1 = uart::Uart<1, void, Uart1RxDma>;
+using Led  = gpio::PC13;
+
+inline constexpr uint16_t UART_DMA_RX_BUFFER_SIZE = 8;
+inline constexpr uint16_t UART_DMA_RX_FIFO_SIZE   = 128;
+
+/* Write through, read allocate，no write allocate */
+EMPP_RAM_SRAM1 inline uint8_t bufferRxDma[UART_DMA_RX_BUFFER_SIZE] = {};
+
+inline empp::fifo<uint8_t, UART_DMA_RX_FIFO_SIZE> fifoRxDma; // 可选：用环形缓冲区封装;
+
+// 有新数据到来（HT/TC/IDLE 任一触发）
+inline volatile bool g_rx_data_ready = false;
+
+// 一帧的结束（触发过 IDLE）
+inline volatile bool g_rx_idle_event = false;
+
+uint8_t fifo_buf[UART_DMA_RX_FIFO_SIZE];
+
+static void process_rx_data() noexcept
+{
+
+    const auto len = fifoRxDma.available_read();
+    if (len == 0U) {
+        return;
+    }
+
+    fifoRxDma.read(fifo_buf, len);
+    Com1::print("\r\n$[empp Rx]:");
+    Com1::print(fifo_buf, len);
+    Com1::print("\r\n");
+}
+
+EMPP_RAM_ITCM void Main()
+{
+    delay::init();
+
+    Com1::enable_dma_rx();
+    Com1::enable_irq_dma_rx_ht(); // 👈 使能 DMA RX 传输半完成中断
+    Com1::enable_irq_dma_rx_tc(); // 👈 使能 DMA RX 传输完成中断
+
+    Com1::config_dma_rx(bufferRxDma, UART_DMA_RX_BUFFER_SIZE);
+    Com1::start_dma_rx();
+
+    delay::ms(20);
+    Com1::clear_idle();      // 👈 UART初始化后会产生空闲帧，延时后再清除IDLE标志（可选）
+    Com1::enable_irq_idle(); // 👈 开 RX IDLE 中断
+
+    /*
+     * - 数据量未达到半满，触发空闲中断
+     * - 数据量达到半满，未达到满溢，先触发半满中断，后触发空闲中断
+     * - 数据量刚好达到满溢，先触发半满中断，后触发满溢中断
+     * - 数据量大于缓冲区长度，DMA循环覆盖溢出的字节
+     */
+
+    for (;;) {
+        if (g_rx_idle_event) {
+            g_rx_data_ready = false;
+            g_rx_idle_event = false;
+
+            process_rx_data(); // 处理这一次“帧结束”之前的全部数据
+        }
+
+        // 预留扩展点：如果未来希望“流式处理”，可以在此使用 g_rx_data_ready
+        if (g_rx_data_ready) {
+            /* something */
+        }
+    }
+}
+
+static volatile uint16_t g_rx_write_pos = 0U;
+
+EMPP_STATIC_INLINE void uart1_rx_update_from_dma() noexcept
+{
+    const uint16_t prev = g_rx_write_pos;
+
+    const auto     dma_remaining = Uart1RxDma::get_length(); // 👈 获取 DMA 剩余传输长度
+    const uint16_t curr          = UART_DMA_RX_BUFFER_SIZE - dma_remaining;
+
+    if (curr == prev) {
+        return; // 没有新数据
+    }
+
+    if (curr > prev) {
+#if defined(__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U) && (EMPP_USE_CACHE == 1U)
+        cache::invalidate_ptr(&bufferRxDma[prev], curr - prev);
+#endif
+        fifoRxDma.write(&bufferRxDma[prev], curr - prev);
+    }
+    else {
+#if defined(__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U) && (EMPP_USE_CACHE == 1U)
+        cache::invalidate_ptr(&bufferRxDma[prev], UART_DMA_RX_BUFFER_SIZE - prev);
+        cache::invalidate_ptr(&bufferRxDma[0], curr);
+#endif
+        fifoRxDma.write(&bufferRxDma[prev], UART_DMA_RX_BUFFER_SIZE - prev);
+        fifoRxDma.write(&bufferRxDma[0], curr);
+    }
+
+    g_rx_write_pos  = curr;
+    g_rx_data_ready = true;
+}
+
+void USART1_IRQHandler()
+{
+    if (Com1::is_idle()) {
+        uart1_rx_update_from_dma();
+        g_rx_idle_event = true;
+        Com1::clear_idle();
+    }
+}
+
+void DMA2_Stream6_IRQHandler()
+{
+    if (Uart1RxDma::is_ht()) {
+        uart1_rx_update_from_dma();
+        Uart1RxDma::clear_ht();
+    }
+    if (Uart1RxDma::is_tc()) {
+        uart1_rx_update_from_dma();
+        Uart1RxDma::clear_tc();
+    }
+}
+```
+
 ### 更多示例
 
 👉 [empp/doc/example](https://github.com/mico845/empp/tree/main/doc/example)
